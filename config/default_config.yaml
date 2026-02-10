@@ -1,0 +1,44 @@
+# Lyra AI Operating System - Default Configuration
+
+lyra:
+  name: "Lyra"
+  version: "0.1.0"
+  mode: "development"  # development, production
+
+interaction:
+  default_interface: "text"  # text, voice
+  voice_enabled: false
+  language: "en"
+  response_style: "friendly"  # friendly, professional, concise
+
+safety:
+  require_confirmation: true
+  permission_level: "strict"  # strict, moderate, relaxed
+  log_all_actions: true
+  dry_run_by_default: true
+
+memory:
+  database_path: "data/lyra_memory.db"
+  max_event_history: 10000
+  summarization_threshold: 1000
+  cleanup_days: 30  # Clean up SHORT_TERM memories older than this
+
+automation:
+  pc_control_enabled: true
+  phone_control_enabled: false
+  default_file_directory: "~/Documents"
+  
+reasoning:
+  intent_confidence_threshold: 0.3
+  max_execution_plan_steps: 10
+
+learning:
+  track_outcomes: true
+  outcomes_file: "data/outcomes.jsonl"
+  
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  file_path: "data/logs/lyra.log"
+  console_output: true
+  max_log_size_mb: 10
+  backup_count: 5
