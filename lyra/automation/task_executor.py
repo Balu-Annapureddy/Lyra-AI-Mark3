@@ -5,7 +5,7 @@ Simulates actions before execution for safety
 """
 
 import time
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from datetime import datetime
 from lyra.reasoning.command_schema import Command, RiskLevel
 from lyra.automation.pc_controller import PCController
