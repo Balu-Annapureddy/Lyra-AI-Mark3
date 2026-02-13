@@ -13,6 +13,7 @@ pyttsx3>=2.90
 pyaudio>=0.2.14
 sounddevice>=0.4.6
 soundfile>=0.12.1
+numpy>=1.24.0
 
 # Automation
 pyautogui>=0.9.54
