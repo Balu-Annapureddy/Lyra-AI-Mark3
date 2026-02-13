@@ -47,7 +47,12 @@ class EventMemory:
                         event_type TEXT NOT NULL,
                         data TEXT NOT NULL,
                         importance REAL DEFAULT 0.5,
-                        created_at TEXT NOT NULL
+                        created_at TEXT NOT NULL,
+                        confidence_score REAL DEFAULT 0.5,
+                        context TEXT DEFAULT '{}',
+                        error_category TEXT,
+                        user_feedback TEXT,
+                        outcome_tags TEXT DEFAULT '[]'
                     )
                 """)
                 
@@ -61,6 +66,10 @@ class EventMemory:
                 
                 cursor.execute("""
                     CREATE INDEX IF NOT EXISTS idx_event_type ON events(event_type)
+                """)
+                
+                cursor.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_confidence ON events(confidence_score)
                 """)
                 
                 conn.commit()
@@ -87,7 +96,12 @@ class EventMemory:
     
     def store_event(self, event_id: str, event_type: str, data: Dict[str, Any],
                    memory_level: MemoryLevel = MemoryLevel.SHORT_TERM,
-                   importance: float = 0.5):
+                   importance: float = 0.5,
+                   confidence_score: float = 0.5,
+                   context: Optional[Dict[str, Any]] = None,
+                   error_category: Optional[str] = None,
+                   user_feedback: Optional[str] = None,
+                   outcome_tags: Optional[List[str]] = None):
         """
         Store an event in memory
         
@@ -97,6 +111,11 @@ class EventMemory:
             data: Event data dictionary
             memory_level: Memory level classification
             importance: Importance score (0.0 to 1.0)
+            confidence_score: Confidence score for ML weighting (0.0 to 1.0)
+            context: Execution context dictionary
+            error_category: Error type classification
+            user_feedback: User rating/feedback
+            outcome_tags: List of outcome tags (success, partial, failed, etc.)
         """
         try:
             with sqlite3.connect(self.db_path) as conn:
@@ -104,8 +123,9 @@ class EventMemory:
                 
                 cursor.execute("""
                     INSERT OR REPLACE INTO events 
-                    (event_id, timestamp, memory_level, event_type, data, importance, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    (event_id, timestamp, memory_level, event_type, data, importance, created_at,
+                     confidence_score, context, error_category, user_feedback, outcome_tags)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     event_id,
                     datetime.now().isoformat(),
@@ -113,11 +133,16 @@ class EventMemory:
                     event_type,
                     json.dumps(data),
                     importance,
-                    datetime.now().isoformat()
+                    datetime.now().isoformat(),
+                    confidence_score,
+                    json.dumps(context or {}),
+                    error_category,
+                    user_feedback,
+                    json.dumps(outcome_tags or [])
                 ))
                 
                 conn.commit()
-                self.logger.debug(f"Stored event: {event_id} ({memory_level.value})")
+                self.logger.debug(f"Stored event: {event_id} ({memory_level.value}, confidence: {confidence_score:.2f})")
         
         except sqlite3.Error as e:
             raise MemoryError(f"Failed to store event: {e}")
@@ -167,7 +192,12 @@ class EventMemory:
                         "event_type": row[4],
                         "data": json.loads(row[5]),
                         "importance": row[6],
-                        "created_at": row[7]
+                        "created_at": row[7],
+                        "confidence_score": row[8] if len(row) > 8 else 0.5,
+                        "context": json.loads(row[9]) if len(row) > 9 and row[9] else {},
+                        "error_category": row[10] if len(row) > 10 else None,
+                        "user_feedback": row[11] if len(row) > 11 else None,
+                        "outcome_tags": json.loads(row[12]) if len(row) > 12 and row[12] else []
                     })
                 
                 return events
@@ -209,7 +239,12 @@ class EventMemory:
                         "event_type": row[4],
                         "data": json.loads(row[5]),
                         "importance": row[6],
-                        "created_at": row[7]
+                        "created_at": row[7],
+                        "confidence_score": row[8] if len(row) > 8 else 0.5,
+                        "context": json.loads(row[9]) if len(row) > 9 and row[9] else {},
+                        "error_category": row[10] if len(row) > 10 else None,
+                        "user_feedback": row[11] if len(row) > 11 else None,
+                        "outcome_tags": json.loads(row[12]) if len(row) > 12 and row[12] else []
                     })
                 
                 return events
