@@ -1,0 +1,94 @@
+{
+  "workflow_id": "8bcdc6d7-e6cf-428e-b9ed-a8b235f9a672",
+  "name": "Recorded Workflow",
+  "description": "Workflow created from recording",
+  "steps": [
+    {
+      "step_id": "460250c0-04cf-45b0-9ac7-812c90319267",
+      "command": {
+        "command_id": "555525a8-b161-441b-9cc7-a2591ce1c289",
+        "timestamp": "2026-02-13T11:35:46.165435",
+        "raw_input": "Test command 0",
+        "intent": "test_action_0",
+        "entities": {
+          "step": 0
+        },
+        "confidence": 0.9,
+        "risk_level": "safe",
+        "requires_confirmation": false,
+        "execution_plan": [],
+        "context": {},
+        "status": "pending",
+        "result": null,
+        "error": null,
+        "user_feedback": null,
+        "execution_time_ms": null
+      },
+      "order": 0,
+      "description": "Step 1: test_action_0",
+      "parameters": {}
+    },
+    {
+      "step_id": "fcf82f91-4f77-4744-aac5-faa2ccd6b0ec",
+      "command": {
+        "command_id": "96c6fd5d-b8d5-4781-ba7a-36bbe0a23788",
+        "timestamp": "2026-02-13T11:35:46.165435",
+        "raw_input": "Test command 1",
+        "intent": "test_action_1",
+        "entities": {
+          "step": 1
+        },
+        "confidence": 0.9,
+        "risk_level": "safe",
+        "requires_confirmation": false,
+        "execution_plan": [],
+        "context": {},
+        "status": "pending",
+        "result": null,
+        "error": null,
+        "user_feedback": null,
+        "execution_time_ms": null
+      },
+      "order": 1,
+      "description": "Step 2: test_action_1",
+      "parameters": {}
+    },
+    {
+      "step_id": "4bba15cc-ddb5-4b55-b202-26370989bee1",
+      "command": {
+        "command_id": "de05bc92-5cbb-4951-9544-29409e0c9a81",
+        "timestamp": "2026-02-13T11:35:46.165435",
+        "raw_input": "Test command 2",
+        "intent": "test_action_2",
+        "entities": {
+          "step": 2
+        },
+        "confidence": 0.9,
+        "risk_level": "safe",
+        "requires_confirmation": false,
+        "execution_plan": [],
+        "context": {},
+        "status": "pending",
+        "result": null,
+        "error": null,
+        "user_feedback": null,
+        "execution_time_ms": null
+      },
+      "order": 2,
+      "description": "Step 3: test_action_2",
+      "parameters": {}
+    }
+  ],
+  "version": 1,
+  "created_at": "2026-02-13T11:35:46.166818",
+  "updated_at": "2026-02-13T11:35:46.166818",
+  "tags": [
+    "recorded",
+    "test"
+  ],
+  "parameters": {},
+  "metadata": {
+    "recorded_at": "2026-02-13T11:35:46.166818",
+    "step_count": 3
+  }
+}
