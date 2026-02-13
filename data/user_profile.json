@@ -1,15 +1,17 @@
 {
   "user_id": "default_user",
-  "trust_score": 0.7333333333333333,
-  "suggestion_acceptance_rate": 0.6666666666666666,
-  "total_suggestions": 6,
-  "accepted_suggestions": 4,
+  "trust_score": 0.7666666666666667,
+  "suggestion_acceptance_rate": 0.7777777777777778,
+  "total_suggestions": 9,
+  "accepted_suggestions": 7,
   "rejected_suggestions": 2,
+  "suggestions_accepted": 0,
+  "suggestions_rejected": 0,
   "rollback_count": 0,
   "error_count": 2,
   "total_commands": 6,
   "successful_commands": 4,
   "preferences": {},
   "created_at": "2026-02-13T11:20:41.915242",
-  "last_updated": "2026-02-13T11:21:19.381784"
+  "last_updated": "2026-02-13T11:47:01.947591"
 }

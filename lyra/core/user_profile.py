@@ -26,6 +26,8 @@ class UserProfile:
     total_suggestions: int = 0
     accepted_suggestions: int = 0
     rejected_suggestions: int = 0
+    suggestions_accepted: int = 0  # Alias for compatibility
+    suggestions_rejected: int = 0  # Alias for compatibility
     
     rollback_count: int = 0
     error_count: int = 0

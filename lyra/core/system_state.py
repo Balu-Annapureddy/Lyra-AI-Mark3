@@ -211,6 +211,22 @@ class SystemStateManager:
         """Get the full system state (for debugging/logging)"""
         return self.state
     
+    def get_state(self) -> SystemState:
+        """Get current system state"""
+        return self.state
+    
+    def can_suggest(self, suggestion_type: str) -> bool:
+        """
+        Check if suggestion is allowed (not in cooldown)
+        
+        Args:
+            suggestion_type: Type of suggestion
+        
+        Returns:
+            True if can suggest
+        """
+        return not self.is_in_cooldown(suggestion_type)
+    
     def reset(self):
         """Reset to initial state"""
         self.state = SystemState()
