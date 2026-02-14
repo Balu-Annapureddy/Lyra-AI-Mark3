@@ -69,7 +69,7 @@
       ],
       "requires_confirmation": true,
       "max_execution_time": 5.0,
-      "enabled": true
+      "enabled": false
     },
     {
       "name": "run_command",
@@ -114,6 +114,48 @@
       "parameters": [],
       "requires_confirmation": false,
       "max_execution_time": 1.0,
+      "enabled": true
+    },
+    {
+      "name": "open_url",
+      "description": "Open URL in default browser",
+      "action_type": "app_launcher",
+      "risk_category": "LOW",
+      "permission_level_required": "LOW",
+      "reversible": true,
+      "parameters": [
+        {
+          "name": "url",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "validation_pattern": "^https?://",
+          "description": "URL to open"
+        }
+      ],
+      "requires_confirmation": false,
+      "max_execution_time": 3.0,
+      "enabled": true
+    },
+    {
+      "name": "launch_app",
+      "description": "Launch application from allowlist",
+      "action_type": "app_launcher",
+      "risk_category": "MEDIUM",
+      "permission_level_required": "MEDIUM",
+      "reversible": true,
+      "parameters": [
+        {
+          "name": "app_name",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "validation_pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Application name from allowlist"
+        }
+      ],
+      "requires_confirmation": true,
+      "max_execution_time": 5.0,
       "enabled": true
     }
   ]

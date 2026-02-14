@@ -1,0 +1,17 @@
+{
+  "notepad": {
+    "path": "notepad.exe",
+    "description": "Notepad text editor",
+    "risk_level": "LOW"
+  },
+  "calculator": {
+    "path": "calc.exe",
+    "description": "Windows Calculator",
+    "risk_level": "LOW"
+  },
+  "explorer": {
+    "path": "explorer.exe",
+    "description": "Windows Explorer",
+    "risk_level": "MEDIUM"
+  }
+}

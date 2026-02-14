@@ -96,7 +96,7 @@ class ToolRegistry:
             self.logger.error(f"Failed to save registry: {e}")
     
     def _register_builtin_tools(self):
-        """Register built-in tools (stubs for Phase 4A)"""
+        """Register built-in tools (Phase 4B: file + app launcher)"""
         
         # File read tool (LOW risk)
         read_file = ToolDefinition(
@@ -174,7 +174,7 @@ class ToolRegistry:
             ],
             requires_confirmation=True,
             max_execution_time=5.0,
-            enabled=True
+            enabled=False  # Disabled - not implemented yet
         )
         self.register_tool(delete_file)
         
@@ -216,6 +216,54 @@ class ToolRegistry:
             enabled=True
         )
         self.register_tool(get_system_info)
+        
+        # Open URL tool (LOW risk) - Phase 4B Step 2
+        open_url = ToolDefinition(
+            name="open_url",
+            description="Open URL in default browser",
+            action_type="app_launcher",
+            risk_category="LOW",
+            permission_level_required="LOW",
+            reversible=True,  # Can close browser
+            parameters=[
+                ToolParameter(
+                    name="url",
+                    type="string",
+                    required=True,
+                    default=None,
+                    validation_pattern=r"^https?://",
+                    description="URL to open"
+                )
+            ],
+            requires_confirmation=False,
+            max_execution_time=3.0,
+            enabled=True
+        )
+        self.register_tool(open_url)
+        
+        # Launch app tool (MEDIUM risk) - Phase 4B Step 2
+        launch_app = ToolDefinition(
+            name="launch_app",
+            description="Launch application from allowlist",
+            action_type="app_launcher",
+            risk_category="MEDIUM",
+            permission_level_required="MEDIUM",
+            reversible=True,  # Can close app
+            parameters=[
+                ToolParameter(
+                    name="app_name",
+                    type="string",
+                    required=True,
+                    default=None,
+                    validation_pattern=r"^[a-zA-Z0-9_\-]+$",
+                    description="Application name from allowlist"
+                )
+            ],
+            requires_confirmation=True,
+            max_execution_time=5.0,
+            enabled=True
+        )
+        self.register_tool(launch_app)
     
     def register_tool(self, tool: ToolDefinition) -> bool:
         """

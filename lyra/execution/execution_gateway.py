@@ -249,7 +249,7 @@ class ExecutionGateway:
     def _execute_step(self, step: ExecutionStep) -> StepResult:
         """
         Execute single step
-        Phase 4B: Real file operations, other tools still stubbed
+        Phase 4B: Real file + app launcher operations
         
         Args:
             step: Execution step
@@ -262,6 +262,9 @@ class ExecutionGateway:
         # Phase 4B: Real file operations
         if step.tool_required in ["read_file", "write_file"]:
             result = self._execute_file_operation(step)
+        # Phase 4B Step 2: Real app launcher operations
+        elif step.tool_required in ["open_url", "launch_app"]:
+            result = self._execute_app_launcher_operation(step)
         else:
             # Other tools still stubbed
             self.logger.info(f"[STUB] Executing step {step.step_number}: {step.description}")
@@ -362,6 +365,95 @@ class ExecutionGateway:
         
         except Exception as e:
             self.logger.error(f"File operation error: {e}")
+            return StepResult(
+                step_id=step.step_id,
+                step_number=step.step_number,
+                success=False,
+                output=None,
+                error=str(e),
+                duration=(datetime.now() - start_time).total_seconds(),
+                timestamp=datetime.now().isoformat()
+            )
+    
+    def _execute_app_launcher_operation(self, step: ExecutionStep) -> StepResult:
+        """
+        Execute app launcher operation using AppLauncherTool
+        
+        Args:
+            step: Execution step
+        
+        Returns:
+            StepResult
+        """
+        from lyra.tools.app_launcher_tool import AppLauncherTool
+        
+        start_time = datetime.now()
+        app_launcher = AppLauncherTool()
+        
+        try:
+            if step.tool_required == "open_url":
+                url = step.parameters.get("url")
+                if not url:
+                    return StepResult(
+                        step_id=step.step_id,
+                        step_number=step.step_number,
+                        success=False,
+                        output=None,
+                        error="Missing required parameter: url",
+                        duration=(datetime.now() - start_time).total_seconds(),
+                        timestamp=datetime.now().isoformat()
+                    )
+                
+                result = app_launcher.open_url(url)
+                
+                return StepResult(
+                    step_id=step.step_id,
+                    step_number=step.step_number,
+                    success=result.success,
+                    output=result.output,
+                    error=result.error,
+                    duration=(datetime.now() - start_time).total_seconds(),
+                    timestamp=datetime.now().isoformat()
+                )
+            
+            elif step.tool_required == "launch_app":
+                app_name = step.parameters.get("app_name")
+                if not app_name:
+                    return StepResult(
+                        step_id=step.step_id,
+                        step_number=step.step_number,
+                        success=False,
+                        output=None,
+                        error="Missing required parameter: app_name",
+                        duration=(datetime.now() - start_time).total_seconds(),
+                        timestamp=datetime.now().isoformat()
+                    )
+                
+                result = app_launcher.launch_app(app_name)
+                
+                return StepResult(
+                    step_id=step.step_id,
+                    step_number=step.step_number,
+                    success=result.success,
+                    output=result.output,
+                    error=result.error,
+                    duration=(datetime.now() - start_time).total_seconds(),
+                    timestamp=datetime.now().isoformat()
+                )
+            
+            else:
+                return StepResult(
+                    step_id=step.step_id,
+                    step_number=step.step_number,
+                    success=False,
+                    output=None,
+                    error=f"Unknown app launcher operation: {step.tool_required}",
+                    duration=(datetime.now() - start_time).total_seconds(),
+                    timestamp=datetime.now().isoformat()
+                )
+        
+        except Exception as e:
+            self.logger.error(f"App launcher operation error: {e}")
             return StepResult(
                 step_id=step.step_id,
                 step_number=step.step_number,
