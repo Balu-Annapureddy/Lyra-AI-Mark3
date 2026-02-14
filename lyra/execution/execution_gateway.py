@@ -8,14 +8,19 @@ NO direct OS access - validation only for Phase 4A
 import json
 from pathlib import Path
 from typing import Dict, Any, List, Optional
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from datetime import datetime
+
 from lyra.planning.execution_planner import ExecutionPlan, ExecutionStep
 from lyra.tools.tool_registry import ToolRegistry
 from lyra.execution.permission_model import PermissionChecker
 from lyra.safety.execution_logger import ExecutionLogger
 from lyra.memory.behavioral_memory import BehavioralMemory
 from lyra.core.logger import get_logger
+
+# Phase 4C imports
+from lyra.execution.dependency_resolver import DependencyResolver
+from lyra.execution.rollback_manager import RollbackManager
 
 
 @dataclass
@@ -71,26 +76,44 @@ class ExecutionGateway:
         self.execution_logger = ExecutionLogger()
         self.behavioral_memory = BehavioralMemory()
         
+        # Phase 4C: Dependency resolution, rollback, panic stop
+        self.dependency_resolver = DependencyResolver()
+        self.rollback_manager = RollbackManager()
+        
         # Execution state
         self.active_executions: Dict[str, ExecutionPlan] = {}
         self.aborted_executions: set = set()
         
-        self.logger.info("Execution gateway initialized")
+        # Phase 4C: Atomic panic stop flag
+        self._panic_stop = False
+        self._panic_reason = ""
+        
+        self.logger.info("Execution gateway initialized with Phase 4C safety features")
     
     def execute_plan(self, plan: ExecutionPlan, 
-                    confirmed: bool = False) -> ExecutionResult:
+                    confirmed: bool = False,
+                    simulate: bool = False) -> ExecutionResult:
         """
         Execute a validated plan
-        Phase 4A: Validation only, returns stub results
+        Phase 4C: Dependency resolution, rollback, verification, simulation
         
         Args:
             plan: Execution plan
             confirmed: Whether user has confirmed
+            simulate: If True, dry-run without execution
         
         Returns:
             ExecutionResult
         """
         start_time = datetime.now()
+        
+        # 1. Check panic stop flag
+        if self._panic_stop:
+            return self._create_error_result(
+                plan,
+                f"Execution halted: {self._panic_reason}",
+                start_time
+            )
         
         # Log plan before execution
         self._log_plan(plan)
@@ -105,34 +128,86 @@ class ExecutionGateway:
             )
         
         # Check confirmation requirement
-        if plan.requires_confirmation and not confirmed:
+        if plan.requires_confirmation and not confirmed and not simulate:
             return self._create_error_result(
                 plan,
                 "Confirmation required but not provided",
                 start_time
             )
         
+        # 2. Resolve dependencies
+        try:
+            ordered_steps = self.dependency_resolver.resolve_execution_order(plan.steps)
+        except ValueError as e:
+            return self._create_error_result(
+                plan,
+                f"Dependency resolution failed: {e}",
+                start_time
+            )
+        
+        # 3. If simulation mode, print plan and return
+        if simulate:
+            return self._simulate_plan(plan, ordered_steps, start_time)
+        
         # Mark as active
         self.active_executions[plan.plan_id] = plan
         
+        # Execution context (for output substitution)
+        context = {}
+        
         # Execute steps
         results = []
-        for step in plan.steps:
-            # Check if aborted
-            if plan.plan_id in self.aborted_executions:
+        completed_step_ids = []
+        
+        for step in ordered_steps:
+            # Check panic stop before each step
+            if self._panic_stop:
+                self.logger.warning(f"Panic stop triggered: {self._panic_reason}")
+                # Rollback completed steps
+                self.rollback_manager.rollback_plan(plan.plan_id, completed_step_ids)
                 return self._create_error_result(
                     plan,
-                    "Execution aborted by user",
+                    f"Execution halted: {self._panic_reason}",
                     start_time
                 )
             
-            # Execute step (stub for Phase 4A)
+            # Substitute outputs from previous steps
+            if step.depends_on:
+                step = self.dependency_resolver.substitute_outputs(step, context)
+            
+            # 4. If reversible, create snapshot
+            snapshot = None
+            if step.reversible:
+                snapshot = self.rollback_manager.create_snapshot(step)
+            
+            # 5. Execute step
             step_result = self._execute_step(step)
             results.append(step_result)
             
-            # Stop on failure
+            # 6. Verify via tool.verify()
+            if step_result.success:
+                verified = self._verify_step(step, step_result)
+                if not verified:
+                    self.logger.error(f"Verification failed for step {step.step_id}")
+                    step_result.success = False
+                    step_result.error = "Verification failed"
+            
+            # 7. On failure, rollback
             if not step_result.success:
+                self.logger.error(f"Step {step.step_id} failed: {step_result.error}")
+                # Rollback this step if snapshot exists
+                if snapshot:
+                    self.rollback_manager.rollback_step(step.step_id)
+                # Rollback all completed steps
+                self.rollback_manager.rollback_plan(plan.plan_id, completed_step_ids)
                 break
+            
+            # Store outputs for dependencies
+            context[step.step_id] = {
+                "output": step_result.output,
+                "success": step_result.success
+            }
+            completed_step_ids.append(step.step_id)
         
         # Remove from active
         del self.active_executions[plan.plan_id]
@@ -156,6 +231,10 @@ class ExecutionGateway:
         
         # Log execution
         self._log_execution(plan, result)
+        
+        # Clear snapshots on success
+        if result.success:
+            self.rollback_manager.clear_snapshots(plan.plan_id)
         
         return result
     
@@ -280,13 +359,107 @@ class ExecutionGateway:
                 duration=(datetime.now() - start_time).total_seconds(),
                 timestamp=datetime.now().isoformat()
             )
-        
+
         return result
-    
+
+    def _simulate_plan(self, plan: ExecutionPlan, ordered_steps: List[ExecutionStep],
+                      start_time: datetime) -> ExecutionResult:
+        """Simulate plan execution without actual operations"""
+        self.logger.info(f"[SIMULATION] Plan: {plan.plan_id}")
+        self.logger.info(f"[SIMULATION] Steps: {len(ordered_steps)}")
+
+        estimated_duration = 0.0
+        results = []
+
+        for i, step in enumerate(ordered_steps, 1):
+            self.logger.info(f"[SIMULATION] Step {i}: {step.tool_required}({step.parameters})")
+            self.logger.info(f"[SIMULATION]   → Would execute: {step.description}")
+
+            if step.reversible:
+                self.logger.info(f"[SIMULATION]   → Snapshot would be created")
+
+            tool_def = self.tool_registry.get_tool(step.tool_required)
+            if tool_def:
+                estimated_duration += tool_def.max_execution_time
+
+            results.append(StepResult(
+                step_id=step.step_id,
+                step_number=step.step_number,
+                success=True,
+                output=f"[SIMULATED] {step.description}",
+                error=None,
+                duration=0.0,
+                timestamp=datetime.now().isoformat()
+            ))
+
+        self.logger.info(f"[SIMULATION] Total estimated duration: ~{estimated_duration:.2f}s")
+
+        return ExecutionResult(
+            plan_id=plan.plan_id,
+            success=True,
+            steps_completed=len(results),
+            steps_failed=0,
+            results=results,
+            total_duration=(datetime.now() - start_time).total_seconds(),
+            error=None,
+            timestamp=datetime.now().isoformat()
+        )
+
+    def _verify_step(self, step: ExecutionStep, result: StepResult) -> bool:
+        """Verify step execution via tool-defined verify() method"""
+        try:
+            if step.tool_required in ["read_file", "write_file"]:
+                from lyra.tools.safe_file_tool import SafeFileTool, FileOperationResult
+                tool = SafeFileTool()
+                file_result = FileOperationResult(
+                    success=result.success,
+                    output=result.output,
+                    error=result.error,
+                    bytes_read=0,
+                    bytes_written=0,
+                    operation=step.tool_required,
+                    target_path=step.parameters.get("path")
+                )
+                return tool.verify(step.tool_required, file_result)
+
+            elif step.tool_required in ["open_url", "launch_app"]:
+                from lyra.tools.app_launcher_tool import AppLauncherTool, LaunchResult
+                tool = AppLauncherTool()
+                launch_result = LaunchResult(
+                    success=result.success,
+                    output=result.output,
+                    error=result.error,
+                    target=step.parameters.get("url") or step.parameters.get("app_name", ""),
+                    operation=step.tool_required
+                )
+                return tool.verify(step.tool_required, launch_result)
+
+            else:
+                return True
+
+        except Exception as e:
+            self.logger.error(f"Verification error: {e}")
+            return False
+
+    def panic_stop(self, reason: str = "User interrupt"):
+        """Immediately halt all active executions"""
+        self._panic_stop = True
+        self._panic_reason = reason
+        self.logger.warning(f"PANIC STOP activated: {reason}")
+
+    def resume_execution(self):
+        """Clear panic stop flag"""
+        self._panic_stop = False
+        self._panic_reason = ""
+        self.logger.info("Panic stop cleared, execution resumed")
+
+    def is_panic_stopped(self) -> bool:
+        """Check if panic stop is active"""
+        return self._panic_stop
+
     def _execute_file_operation(self, step: ExecutionStep) -> StepResult:
         """
         Execute file operation using SafeFileTool
-        
         Args:
             step: Execution step
         

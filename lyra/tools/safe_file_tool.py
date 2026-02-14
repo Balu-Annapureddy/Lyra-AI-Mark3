@@ -17,10 +17,10 @@ class FileOperationResult:
     success: bool
     output: Any
     error: Optional[str]
-    path: str
-    operation: str
     bytes_read: int = 0
     bytes_written: int = 0
+    operation: str = ""
+    target_path: Optional[str] = None  # For verification
 
 
 class SafeFileTool:
@@ -339,3 +339,36 @@ class SafeFileTool:
                 f"File modified: {path} "
                 f"({len(old_lines)} -> {len(new_lines)} lines)"
             )
+    
+    def verify(self, operation: str, result: FileOperationResult) -> bool:
+        """
+        Tool-defined verification method
+        Phase 4C: Verify expected result occurred
+        
+        Args:
+            operation: Operation name (read_file, write_file)
+            result: Operation result
+        
+        Returns:
+            True if verification passed
+        """
+        if not result.success:
+            # Operation already failed, skip verification
+            return False
+        
+        if operation == "read_file":
+            # Verify content was returned
+            return result.output is not None and len(result.output) > 0
+        
+        elif operation == "write_file":
+            # Verify file exists and has content
+            if result.target_path and os.path.exists(result.target_path):
+                try:
+                    size = os.path.getsize(result.target_path)
+                    return size > 0
+                except:
+                    return False
+            return False
+        
+        return True
+

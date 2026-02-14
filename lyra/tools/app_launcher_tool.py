@@ -371,3 +371,32 @@ class AppLauncherTool:
         except Exception as e:
             self.logger.error(f"Error removing app from allowlist: {e}")
             return False
+    
+    def verify(self, operation: str, result: LaunchResult) -> bool:
+        """
+        Tool-defined verification method
+        Phase 4C: Verify expected result occurred
+        
+        Args:
+            operation: Operation name (open_url, launch_app)
+            result: Operation result
+        
+        Returns:
+            True if verification passed
+        """
+        if not result.success:
+            # Operation already failed, skip verification
+            return False
+        
+        if operation == "open_url":
+            # For URL opening, just verify it was called successfully
+            # Can't easily verify browser actually opened
+            return True
+        
+        elif operation == "launch_app":
+            # For app launch, verify it was called successfully
+            # Future: check process list for running app
+            return True
+        
+        return True
+
