@@ -1,0 +1,84 @@
+{
+  "email_check": [
+    {
+      "rejection_id": "523ac70e-4be0-4062-b60d-3bda65b032c5",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-14T12:15:32.488861",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.06931471805599453
+    },
+    {
+      "rejection_id": "cdfe481d-907a-437c-99a3-a609c126cfe8",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-14T12:15:32.491468",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.10986122886681099
+    },
+    {
+      "rejection_id": "d5519111-46ee-467e-b647-d02f28090b2b",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-14T12:15:32.493281",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.13862943611198905
+    },
+    {
+      "rejection_id": "03aa8dd3-18bd-4dbf-b6bd-8e9654b0d893",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-14T12:15:32.494889",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.16094379124341004
+    },
+    {
+      "rejection_id": "422ca94b-4a83-4765-a9d5-50e07d431258",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-14T12:15:32.499278",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.1791759469228055
+    }
+  ]
+}

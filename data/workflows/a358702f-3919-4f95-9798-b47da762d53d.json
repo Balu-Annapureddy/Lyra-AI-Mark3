@@ -1,0 +1,37 @@
+{
+  "workflow_id": "a358702f-3919-4f95-9798-b47da762d53d",
+  "name": "Demo Workflow",
+  "description": "A demonstration workflow",
+  "steps": [
+    {
+      "step_id": "e2910bfb-3321-4aed-b270-dfcd68d1f6e9",
+      "command": "{'intent': 'open_application', 'app': 'notepad'}",
+      "order": 0,
+      "description": "Open Notepad",
+      "parameters": {}
+    },
+    {
+      "step_id": "ee2fbd29-bd64-45ad-958c-aa83a22a1a69",
+      "command": "{'intent': 'create_file', 'filename': 'demo.txt'}",
+      "order": 1,
+      "description": "Create demo file",
+      "parameters": {}
+    },
+    {
+      "step_id": "5ff272c4-fdf6-4a52-b236-1acb0824f835",
+      "command": "{'intent': 'write_text', 'text': 'Hello from Lyra!'}",
+      "order": 2,
+      "description": "Write text",
+      "parameters": {}
+    }
+  ],
+  "version": 1,
+  "created_at": "2026-02-14T11:48:11.829097",
+  "updated_at": "2026-02-14T11:48:11.829097",
+  "tags": [
+    "demo",
+    "test"
+  ],
+  "parameters": {},
+  "metadata": {}
+}
