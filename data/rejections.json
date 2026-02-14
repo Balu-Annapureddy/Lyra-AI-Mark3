@@ -79,6 +79,172 @@
         ""
       ],
       "weight_adjustment": 0.1791759469228055
+    },
+    {
+      "rejection_id": "1863c997-4414-49a6-896e-95001b7defb4",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-14T12:23:33.692305",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.19459101490553132
+    },
+    {
+      "rejection_id": "83ece29d-1f29-4996-a925-6346bf3c4508",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-14T12:23:33.693335",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.2079441541679836
+    },
+    {
+      "rejection_id": "a95606cb-6855-467b-9fff-977847bce933",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-14T12:23:33.693335",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.21972245773362198
+    },
+    {
+      "rejection_id": "8df565a8-7d04-434f-b54c-5c5e98fd5452",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-14T12:23:33.696986",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.2302585092994046
+    },
+    {
+      "rejection_id": "b25ec3a6-dd12-468d-b0a0-0c55abe2011a",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-14T12:23:33.699525",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.23978952727983707
+    }
+  ],
+  "morning_email_check": [
+    {
+      "rejection_id": "401865e6-18e9-4037-9600-6dc41d0d0a75",
+      "suggestion_type": "morning_email_check",
+      "timestamp": "2026-02-14T12:23:16.681996",
+      "reason": "wrong_time",
+      "context": {},
+      "similarity_features": [
+        "morning_email_check",
+        "",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.06931471805599453
+    },
+    {
+      "rejection_id": "f005951a-ef19-4752-963c-fbab251347d8",
+      "suggestion_type": "morning_email_check",
+      "timestamp": "2026-02-14T12:23:16.684424",
+      "reason": "wrong_time",
+      "context": {},
+      "similarity_features": [
+        "morning_email_check",
+        "",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.10986122886681099
+    },
+    {
+      "rejection_id": "19f1dcc1-fb82-4edd-af54-3011f9cb18d4",
+      "suggestion_type": "morning_email_check",
+      "timestamp": "2026-02-14T12:23:16.686876",
+      "reason": "wrong_time",
+      "context": {},
+      "similarity_features": [
+        "morning_email_check",
+        "",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.13862943611198905
+    },
+    {
+      "rejection_id": "e82272e1-f4ba-4c23-9d8a-a9f0d20b88f6",
+      "suggestion_type": "morning_email_check",
+      "timestamp": "2026-02-14T12:23:33.789378",
+      "reason": "wrong_time",
+      "context": {},
+      "similarity_features": [
+        "morning_email_check",
+        "",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.16094379124341004
+    },
+    {
+      "rejection_id": "678ec86c-9b86-4577-b790-a7a9f451182b",
+      "suggestion_type": "morning_email_check",
+      "timestamp": "2026-02-14T12:23:33.790405",
+      "reason": "wrong_time",
+      "context": {},
+      "similarity_features": [
+        "morning_email_check",
+        "",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.1791759469228055
+    },
+    {
+      "rejection_id": "7c0cb5fc-f27e-4a82-9cac-3e4b98da79c6",
+      "suggestion_type": "morning_email_check",
+      "timestamp": "2026-02-14T12:23:33.790405",
+      "reason": "wrong_time",
+      "context": {},
+      "similarity_features": [
+        "morning_email_check",
+        "",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.19459101490553132
     }
   ]
 }
