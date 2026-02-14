@@ -1,0 +1,24 @@
+{
+  "plan_id": "0f535669-ebdb-43cc-a9b9-4b6bbea3d8a2",
+  "request": "Read file.txt",
+  "steps": [
+    {
+      "step_id": "11726316-9fa7-4c81-ae6a-d4e485c80bf5",
+      "step_number": 1,
+      "action_type": "file_read",
+      "tool_required": "read_file",
+      "parameters": {
+        "path": "placeholder.txt"
+      },
+      "risk_level": "LOW",
+      "requires_confirmation": false,
+      "depends_on": [],
+      "reversible": true,
+      "estimated_duration": 0.5,
+      "description": "Read file contents"
+    }
+  ],
+  "total_risk_score": 0.19999999999999996,
+  "requires_confirmation": false,
+  "created_at": "2026-02-14T12:36:39.054389"
+}

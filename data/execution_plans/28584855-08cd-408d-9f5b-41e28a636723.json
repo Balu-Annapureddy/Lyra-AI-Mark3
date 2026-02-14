@@ -1,0 +1,24 @@
+{
+  "plan_id": "28584855-08cd-408d-9f5b-41e28a636723",
+  "request": "Delete file important.txt",
+  "steps": [
+    {
+      "step_id": "87d3517c-13f4-4993-86ec-8a908db41744",
+      "step_number": 1,
+      "action_type": "file_delete",
+      "tool_required": "delete_file",
+      "parameters": {
+        "path": "placeholder.txt"
+      },
+      "risk_level": "HIGH",
+      "requires_confirmation": true,
+      "depends_on": [],
+      "reversible": false,
+      "estimated_duration": 0.5,
+      "description": "Delete file"
+    }
+  ],
+  "total_risk_score": 0.8,
+  "requires_confirmation": true,
+  "created_at": "2026-02-14T12:36:38.846133"
+}

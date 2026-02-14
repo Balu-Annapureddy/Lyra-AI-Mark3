@@ -1,0 +1,120 @@
+{
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Read contents of a file",
+      "action_type": "file",
+      "risk_category": "LOW",
+      "permission_level_required": "LOW",
+      "reversible": true,
+      "parameters": [
+        {
+          "name": "path",
+          "type": "path",
+          "required": true,
+          "default": null,
+          "validation_pattern": "^[a-zA-Z0-9_/\\.\\-]+$",
+          "description": "Path to file"
+        }
+      ],
+      "requires_confirmation": false,
+      "max_execution_time": 5.0,
+      "enabled": true
+    },
+    {
+      "name": "write_file",
+      "description": "Write contents to a file",
+      "action_type": "file",
+      "risk_category": "MEDIUM",
+      "permission_level_required": "MEDIUM",
+      "reversible": false,
+      "parameters": [
+        {
+          "name": "path",
+          "type": "path",
+          "required": true,
+          "default": null,
+          "validation_pattern": "^[a-zA-Z0-9_/\\.\\-]+$",
+          "description": "Path to file"
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "validation_pattern": null,
+          "description": "Content to write"
+        }
+      ],
+      "requires_confirmation": true,
+      "max_execution_time": 10.0,
+      "enabled": true
+    },
+    {
+      "name": "delete_file",
+      "description": "Delete a file",
+      "action_type": "file",
+      "risk_category": "HIGH",
+      "permission_level_required": "HIGH",
+      "reversible": false,
+      "parameters": [
+        {
+          "name": "path",
+          "type": "path",
+          "required": true,
+          "default": null,
+          "validation_pattern": "^[a-zA-Z0-9_/\\.\\-]+$",
+          "description": "Path to file"
+        }
+      ],
+      "requires_confirmation": true,
+      "max_execution_time": 5.0,
+      "enabled": true
+    },
+    {
+      "name": "run_command",
+      "description": "Execute a system command",
+      "action_type": "command",
+      "risk_category": "HIGH",
+      "permission_level_required": "HIGH",
+      "reversible": false,
+      "parameters": [
+        {
+          "name": "command",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "validation_pattern": null,
+          "description": "Command to execute"
+        }
+      ],
+      "requires_confirmation": true,
+      "max_execution_time": 30.0,
+      "enabled": false
+    },
+    {
+      "name": "get_system_info",
+      "description": "Get system information",
+      "action_type": "system",
+      "risk_category": "LOW",
+      "permission_level_required": "LOW",
+      "reversible": true,
+      "parameters": [],
+      "requires_confirmation": false,
+      "max_execution_time": 2.0,
+      "enabled": true
+    },
+    {
+      "name": "test_tool",
+      "description": "Test tool",
+      "action_type": "test",
+      "risk_category": "LOW",
+      "permission_level_required": "LOW",
+      "reversible": true,
+      "parameters": [],
+      "requires_confirmation": false,
+      "max_execution_time": 1.0,
+      "enabled": true
+    }
+  ]
+}
