@@ -249,7 +249,7 @@ class ExecutionGateway:
     def _execute_step(self, step: ExecutionStep) -> StepResult:
         """
         Execute single step
-        Phase 4A: Returns stub result (no actual execution)
+        Phase 4B: Real file operations, other tools still stubbed
         
         Args:
             step: Execution step
@@ -259,26 +259,118 @@ class ExecutionGateway:
         """
         start_time = datetime.now()
         
-        # Phase 4A: Stub execution (no actual OS calls)
-        # Future phases will implement actual tool execution
+        # Phase 4B: Real file operations
+        if step.tool_required in ["read_file", "write_file"]:
+            result = self._execute_file_operation(step)
+        else:
+            # Other tools still stubbed
+            self.logger.info(f"[STUB] Executing step {step.step_number}: {step.description}")
+            import time
+            time.sleep(0.01)  # Minimal delay
+            
+            result = StepResult(
+                step_id=step.step_id,
+                step_number=step.step_number,
+                success=True,
+                output=f"[STUB] {step.description} completed",
+                error=None,
+                duration=(datetime.now() - start_time).total_seconds(),
+                timestamp=datetime.now().isoformat()
+            )
         
-        self.logger.info(f"[STUB] Executing step {step.step_number}: {step.description}")
+        return result
+    
+    def _execute_file_operation(self, step: ExecutionStep) -> StepResult:
+        """
+        Execute file operation using SafeFileTool
         
-        # Simulate execution
-        import time
-        time.sleep(0.01)  # Minimal delay
+        Args:
+            step: Execution step
         
-        duration = (datetime.now() - start_time).total_seconds()
+        Returns:
+            StepResult
+        """
+        from lyra.tools.safe_file_tool import SafeFileTool
         
-        return StepResult(
-            step_id=step.step_id,
-            step_number=step.step_number,
-            success=True,
-            output=f"[STUB] {step.description} completed",
-            error=None,
-            duration=duration,
-            timestamp=datetime.now().isoformat()
-        )
+        start_time = datetime.now()
+        file_tool = SafeFileTool()
+        
+        try:
+            if step.tool_required == "read_file":
+                path = step.parameters.get("path")
+                if not path:
+                    return StepResult(
+                        step_id=step.step_id,
+                        step_number=step.step_number,
+                        success=False,
+                        output=None,
+                        error="Missing required parameter: path",
+                        duration=(datetime.now() - start_time).total_seconds(),
+                        timestamp=datetime.now().isoformat()
+                    )
+                
+                result = file_tool.read_file(path)
+                
+                return StepResult(
+                    step_id=step.step_id,
+                    step_number=step.step_number,
+                    success=result.success,
+                    output=result.output,
+                    error=result.error,
+                    duration=(datetime.now() - start_time).total_seconds(),
+                    timestamp=datetime.now().isoformat()
+                )
+            
+            elif step.tool_required == "write_file":
+                path = step.parameters.get("path")
+                content = step.parameters.get("content", "")
+                append = step.parameters.get("append", False)
+                
+                if not path:
+                    return StepResult(
+                        step_id=step.step_id,
+                        step_number=step.step_number,
+                        success=False,
+                        output=None,
+                        error="Missing required parameter: path",
+                        duration=(datetime.now() - start_time).total_seconds(),
+                        timestamp=datetime.now().isoformat()
+                    )
+                
+                result = file_tool.write_file(path, content, append)
+                
+                return StepResult(
+                    step_id=step.step_id,
+                    step_number=step.step_number,
+                    success=result.success,
+                    output=result.output,
+                    error=result.error,
+                    duration=(datetime.now() - start_time).total_seconds(),
+                    timestamp=datetime.now().isoformat()
+                )
+            
+            else:
+                return StepResult(
+                    step_id=step.step_id,
+                    step_number=step.step_number,
+                    success=False,
+                    output=None,
+                    error=f"Unknown file operation: {step.tool_required}",
+                    duration=(datetime.now() - start_time).total_seconds(),
+                    timestamp=datetime.now().isoformat()
+                )
+        
+        except Exception as e:
+            self.logger.error(f"File operation error: {e}")
+            return StepResult(
+                step_id=step.step_id,
+                step_number=step.step_number,
+                success=False,
+                output=None,
+                error=str(e),
+                duration=(datetime.now() - start_time).total_seconds(),
+                timestamp=datetime.now().isoformat()
+            )
     
     def _is_protected_path(self, path: str) -> bool:
         """Check if path is protected"""

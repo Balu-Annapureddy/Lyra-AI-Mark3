@@ -1,0 +1,40 @@
+{
+  "plan_id": "test_plan",
+  "request": "Read and modify file",
+  "steps": [
+    {
+      "step_id": "step1",
+      "step_number": 1,
+      "action_type": "file_read",
+      "tool_required": "read_file",
+      "parameters": {
+        "path": "C:\\Users\\annap\\AppData\\Local\\Temp\\tmpqhzq2vb1\\plan_test.txt"
+      },
+      "risk_level": "LOW",
+      "requires_confirmation": false,
+      "depends_on": [],
+      "reversible": true,
+      "estimated_duration": 0.5,
+      "description": "Read file"
+    },
+    {
+      "step_id": "step2",
+      "step_number": 2,
+      "action_type": "file_write",
+      "tool_required": "write_file",
+      "parameters": {
+        "path": "C:\\Users\\annap\\AppData\\Local\\Temp\\tmpqhzq2vb1\\plan_test.txt",
+        "content": "Modified content"
+      },
+      "risk_level": "MEDIUM",
+      "requires_confirmation": true,
+      "depends_on": [],
+      "reversible": false,
+      "estimated_duration": 1.0,
+      "description": "Write file"
+    }
+  ],
+  "total_risk_score": 0.5,
+  "requires_confirmation": true,
+  "created_at": "2026-02-14T12:00:00"
+}
