@@ -82,7 +82,7 @@ class InteractiveCLI:
     def stop(self):
         """Stop CLI gracefully"""
         self.running = False
-        print(self._colorize("\nGoodbye! 👋", Colors.CYAN))
+        print(f"\n{Colors.BOLD}Goodbye!{Colors.RESET}\n")
     
     def _print_banner(self):
         """Print welcome banner"""
@@ -90,46 +90,46 @@ class InteractiveCLI:
 {self._colorize('╔═══════════════════════════════════════╗', Colors.CYAN)}
 {self._colorize('║', Colors.CYAN)}  {self._colorize('Lyra AI v3.0', Colors.BOLD)}  {self._colorize('- Interactive Mode', Colors.CYAN)}  {self._colorize('║', Colors.CYAN)}
 {self._colorize('╚═══════════════════════════════════════╝', Colors.CYAN)}
-
-{self._colorize('Commands:', Colors.BOLD)}
-  • Type your command naturally
-  • Type 'help' for examples
-  • Type 'simulate <command>' for dry-run
-  • Type 'exit' to quit
-
-{self._colorize('Examples:', Colors.BOLD)}
-  • create file test.txt with content "Hello"
-  • open https://google.com
-  • launch notepad
 """
         print(banner)
+        print(f"\n{Colors.BOLD}Commands:{Colors.RESET}")
+        print(f"  - Type your command naturally")
+        print(f"  - Type 'help' for examples")
+        print(f"  - Type 'simulate <command>' for dry-run")
+        print(f"  - Type 'exit' to quit")
+        print()
+        print(f"{Colors.BOLD}Examples:{Colors.RESET}")
+        print(f"  - create file test.txt with content \"Hello\"")
+        print(f"  - open https://google.com")
+        print(f"  - launch notepad")
+        print()
     
     def _print_help(self):
         """Print help information"""
         help_text = f"""
 {self._colorize('Available Commands:', Colors.BOLD)}
-
-{self._colorize('File Operations:', Colors.CYAN)}
-  • create file <path> with content "<text>"
-  • write to file <path>: <content>
-  • read file <path>
-
-{self._colorize('Web & Apps:', Colors.CYAN)}
-  • open <url>
-  • launch <app_name>
-
-{self._colorize('System:', Colors.CYAN)}
-  • simulate <command>  - Dry-run without execution
-  • help              - Show this help
-  • exit              - Quit Lyra
-
-{self._colorize('Examples:', Colors.BOLD)}
-  {self._colorize('>', Colors.CYAN)} create file notes.txt with content "Meeting notes"
-  {self._colorize('>', Colors.CYAN)} open https://github.com
-  {self._colorize('>', Colors.CYAN)} launch notepad
-  {self._colorize('>', Colors.CYAN)} simulate create file test.txt with content "test"
 """
         print(help_text)
+        print(f"\n{Colors.BOLD}File Operations:{Colors.RESET}")
+        print(f"  - create file <path> with content \"<text>\"")
+        print(f"  - write to file <path>: <content>")
+        print(f"  - read file <path>")
+        print()
+        print(f"{Colors.BOLD}Web & Apps:{Colors.RESET}")
+        print(f"  - open <url>")
+        print(f"  - launch <app_name>")
+        print()
+        print(f"{Colors.BOLD}System:{Colors.RESET}")
+        print(f"  - simulate <command>  - Dry-run without execution")
+        print(f"  - help              - Show this help")
+        print(f"  - exit              - Quit Lyra")
+        print()
+        print(f"{Colors.BOLD}Examples:{Colors.RESET}")
+        print(f"  {self._colorize('>', Colors.CYAN)} create file notes.txt with content \"Meeting notes\"")
+        print(f"  {self._colorize('>', Colors.CYAN)} open https://github.com")
+        print(f"  {self._colorize('>', Colors.CYAN)} launch notepad")
+        print(f"  {self._colorize('>', Colors.CYAN)} simulate create file test.txt with content \"test\"")
+        print()
     
     def _colorize(self, text: str, color: str) -> str:
         """Apply color to text"""

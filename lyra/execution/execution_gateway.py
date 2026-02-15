@@ -8,7 +8,7 @@ NO direct OS access - validation only for Phase 4A
 import json
 from pathlib import Path
 from typing import Dict, Any, List, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from datetime import datetime
 
 from lyra.planning.execution_planner import ExecutionPlan, ExecutionStep
@@ -373,10 +373,10 @@ class ExecutionGateway:
 
         for i, step in enumerate(ordered_steps, 1):
             self.logger.info(f"[SIMULATION] Step {i}: {step.tool_required}({step.parameters})")
-            self.logger.info(f"[SIMULATION]   → Would execute: {step.description}")
+            self.logger.info(f"[SIMULATION]   -> Would execute: {step.description}")
 
             if step.reversible:
-                self.logger.info(f"[SIMULATION]   → Snapshot would be created")
+                self.logger.info(f"[SIMULATION]   -> Snapshot would be created")
 
             tool_def = self.tool_registry.get_tool(step.tool_required)
             if tool_def:

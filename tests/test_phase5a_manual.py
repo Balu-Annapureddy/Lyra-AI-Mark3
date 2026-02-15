@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Manual Aggressive Test Suite for Phase 5A
 Run this to break the pipeline on purpose

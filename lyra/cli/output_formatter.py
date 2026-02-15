@@ -48,8 +48,7 @@ class OutputFormatter:
         lines = []
         
         # Success header
-        check = self._colorize("✓", Colors.GREEN)
-        lines.append(f"{check} {self._colorize('Success', Colors.GREEN + Colors.BOLD)}")
+        lines.append(self._colorize("[OK] Success", Colors.GREEN + Colors.BOLD))
         
         # Step details
         for step_result in result.results:
@@ -67,8 +66,7 @@ class OutputFormatter:
         lines = []
         
         # Error header
-        cross = self._colorize("✗", Colors.RED)
-        lines.append(f"{cross} {self._colorize('Error', Colors.RED + Colors.BOLD)}")
+        lines.append(self._colorize("[ERROR] Failed", Colors.RED + Colors.BOLD))
         
         # Error message
         if result.error:
@@ -86,6 +84,7 @@ class OutputFormatter:
         lines = []
         
         lines.append(self._colorize("Execution Plan:", Colors.BOLD))
+        lines.append(self._colorize("[WARN] Warning", Colors.YELLOW))
         lines.append(f"  {plan_description}")
         lines.append(f"  Steps: {steps}")
         lines.append(f"  Risk: {self._format_risk(risk)}")
@@ -126,4 +125,4 @@ class OutputFormatter:
     
     def format_error_from_exception(self, exception: Exception) -> str:
         """Format exception as error message"""
-        return self._colorize(f"✗ Error: {str(exception)}", Colors.RED)
+        return self._colorize(f"[ERROR] Error: {str(exception)}", Colors.RED)

@@ -1,0 +1,24 @@
+{
+  "plan_id": "6154ea06-9933-4d9c-acc0-17a1ed95bcd2",
+  "request": "launch notepad",
+  "steps": [
+    {
+      "step_id": "65e8da62-6e68-4a68-9499-f4e42cee799d",
+      "step_number": 1,
+      "action_type": "app_launcher",
+      "tool_required": "launch_app",
+      "parameters": {
+        "app_name": "notepad"
+      },
+      "risk_level": "LOW",
+      "requires_confirmation": false,
+      "depends_on": [],
+      "reversible": false,
+      "estimated_duration": 1.5,
+      "description": "Launch application notepad"
+    }
+  ],
+  "total_risk_score": 0.19999999999999996,
+  "requires_confirmation": false,
+  "created_at": "2026-02-15T15:13:59.701342"
+}

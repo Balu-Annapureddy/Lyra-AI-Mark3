@@ -1,0 +1,24 @@
+{
+  "plan_id": "e6e9ce6d-f588-4b02-95e5-3c1bed6f0c6e",
+  "request": "open https://google.com",
+  "steps": [
+    {
+      "step_id": "55905920-2110-4f2c-91c3-29ea84234507",
+      "step_number": 1,
+      "action_type": "app_launcher",
+      "tool_required": "open_url",
+      "parameters": {
+        "url": "https://google.com"
+      },
+      "risk_level": "LOW",
+      "requires_confirmation": false,
+      "depends_on": [],
+      "reversible": false,
+      "estimated_duration": 1.0,
+      "description": "Open URL https://google.com"
+    }
+  ],
+  "total_risk_score": 0.19999999999999996,
+  "requires_confirmation": false,
+  "created_at": "2026-02-15T15:13:59.696341"
+}
