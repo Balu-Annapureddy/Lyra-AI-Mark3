@@ -97,6 +97,134 @@ class ExecutionPlanner:
         self.logger.info(f"Plan created: {plan.plan_id} with {len(steps)} steps")
         return plan
     
+    def create_plan_from_command(self, command) -> ExecutionPlan:
+        """
+        Create execution plan from Command object
+        Phase 5A: Intent-to-plan mapping
+        
+        Args:
+            command: Command object from IntentDetector
+        
+        Returns:
+            ExecutionPlan
+        """
+        steps = []
+        
+        # Map intent to execution steps
+        if command.intent == "write_file":
+            # Extract path and content from entities
+            path = command.entities.get("path", "")
+            content = command.entities.get("content", "")
+            
+            # If not in entities, try to extract from raw input
+            if not path or not content:
+                import re
+                match = re.search(r'file\s+(\S+)\s+with content\s+["\'](.+)["\']', command.raw_input)
+                if match:
+                    path = match.group(1)
+                    content = match.group(2)
+            
+            step = ExecutionStep(
+                step_id=str(uuid.uuid4()),
+                step_number=1,
+                action_type="file_write",
+                tool_required="write_file",
+                parameters={"path": path, "content": content},
+                risk_level="MEDIUM",
+                requires_confirmation=True,
+                depends_on=[],
+                reversible=True,
+                estimated_duration=0.5,
+                description=f"Write to file {path}"
+            )
+            steps.append(step)
+        
+        elif command.intent == "read_file":
+            path = command.entities.get("path", "")
+            
+            step = ExecutionStep(
+                step_id=str(uuid.uuid4()),
+                step_number=1,
+                action_type="file_read",
+                tool_required="read_file",
+                parameters={"path": path},
+                risk_level="LOW",
+                requires_confirmation=False,
+                depends_on=[],
+                reversible=False,
+                estimated_duration=0.2,
+                description=f"Read file {path}"
+            )
+            steps.append(step)
+        
+        elif command.intent == "open_url":
+            url = command.entities.get("url", "")
+            
+            # Ensure URL has protocol
+            if url and not url.startswith(("http://", "https://")):
+                if url.startswith("www."):
+                    url = "https://" + url
+                else:
+                    url = "https://" + url
+            
+            step = ExecutionStep(
+                step_id=str(uuid.uuid4()),
+                step_number=1,
+                action_type="app_launcher",
+                tool_required="open_url",
+                parameters={"url": url},
+                risk_level="LOW",
+                requires_confirmation=False,
+                depends_on=[],
+                reversible=False,
+                estimated_duration=1.0,
+                description=f"Open URL {url}"
+            )
+            steps.append(step)
+        
+        elif command.intent == "launch_app":
+            app_name = command.entities.get("app_name", "")
+            
+            step = ExecutionStep(
+                step_id=str(uuid.uuid4()),
+                step_number=1,
+                action_type="app_launcher",
+                tool_required="launch_app",
+                parameters={"app_name": app_name},
+                risk_level="LOW",
+                requires_confirmation=False,
+                depends_on=[],
+                reversible=False,
+                estimated_duration=1.5,
+                description=f"Launch application {app_name}"
+            )
+            steps.append(step)
+        
+        else:
+            # Unknown intent
+            self.logger.warning(f"No plan mapping for intent: {command.intent}")
+            return None
+        
+        # Calculate overall metrics
+        total_risk = self._calculate_total_risk(steps)
+        requires_confirmation = any(step.requires_confirmation for step in steps)
+        estimated_duration = sum(step.estimated_duration for step in steps)
+        
+        plan = ExecutionPlan(
+            plan_id=str(uuid.uuid4()),
+            request=command.raw_input,
+            steps=steps,
+            total_risk_score=total_risk,
+            requires_confirmation=requires_confirmation,
+            created_at=datetime.now().isoformat(),
+            estimated_total_duration=estimated_duration,
+            confidence_score=command.confidence
+        )
+        
+        self.logger.info(f"Plan created from command: {plan.plan_id}, intent={command.intent}")
+        return plan
+
+    
     def _parse_request(self, request: str) -> List[Dict[str, Any]]:
         """
         Parse request into action list

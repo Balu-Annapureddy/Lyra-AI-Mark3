@@ -1,7 +1,6 @@
 """
 Rollback Manager - Phase 4C
-Opt-in rollback for reversible tools only
-Stores snapshots and enables rollback on failure
+Manages opt-in snapshots and rollback for reversible operations
 """
 
 import os
@@ -11,7 +10,6 @@ from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from lyra.planning.execution_planner import ExecutionStep
-from lyra.execution.execution_gateway import StepResult
 from lyra.core.logger import get_logger
 
 

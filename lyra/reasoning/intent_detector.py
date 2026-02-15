@@ -52,11 +52,21 @@ class IntentDetector:
         )
         
         # File operations (MEDIUM to HIGH)
+        # Phase 5A: Enhanced patterns
         self.register_intent(
-            "create_file",
-            [r"create.*file", r"make.*file", r"new file"],
+            "write_file",
+            [r"create file\s+(\S+)\s+with content\s+[\"'](.+)[\"']",
+             r"write to file\s+(\S+):\s*(.+)",
+             r"create.*file", r"make.*file"],
             RiskLevel.MEDIUM,
-            {"filename": r"(?:named?|called)\s+([^\s]+)"}
+            {"path": r"file\s+(\S+)", "content": r"content\s+[\"'](.+)[\"']"}
+        )
+        
+        self.register_intent(
+            "read_file",
+            [r"read file\s+(\S+)", r"show file\s+(\S+)", r"open file\s+(\S+)"],
+            RiskLevel.LOW,
+            {"path": r"file\s+(\S+)"}
         )
         
         self.register_intent(
@@ -66,19 +76,20 @@ class IntentDetector:
             {"filename": r"(?:file|named?|called)\s+([^\s]+)"}
         )
         
+        # Application control (LOW)
+        # Phase 5A: URL and app launching
         self.register_intent(
-            "open_file",
-            [r"open.*file", r"show.*file"],
+            "open_url",
+            [r"open\s+(https?://\S+)", r"open\s+(www\.\S+)", r"open\s+([a-z0-9.-]+\.com)"],
             RiskLevel.LOW,
-            {"filename": r"(?:file|named?|called)\s+([^\s]+)"}
+            {"url": r"open\s+(\S+)"}
         )
         
-        # Application control (LOW)
         self.register_intent(
-            "open_application",
-            [r"open\s+(\w+)", r"launch\s+(\w+)", r"start\s+(\w+)"],
+            "launch_app",
+            [r"launch\s+(\w+)", r"start\s+(\w+)", r"open\s+(notepad|calculator|chrome|firefox)"],
             RiskLevel.LOW,
-            {"app_name": r"(?:open|launch|start)\s+(\w+)"}
+            {"app_name": r"(?:launch|start|open)\s+(\w+)"}
         )
         
         self.register_intent(
