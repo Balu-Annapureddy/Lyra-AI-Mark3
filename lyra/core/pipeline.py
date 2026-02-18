@@ -279,7 +279,7 @@ class LyraPipeline:
             if norm_result.was_modified:
                 self.logger.info(
                     f"Input normalised [{norm_result.delta}]: "
-                    f"'{user_input}' → '{norm_result.normalized}'"
+                    f"'{user_input}' -> '{norm_result.normalized}'"
                 )
                 # Only count as applied when no dangerous token involved
                 self.metrics.increment("normalization_applied")

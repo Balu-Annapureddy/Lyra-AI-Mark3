@@ -66,6 +66,23 @@ class InteractiveCLI:
                     self._display_logs()
                     continue
                 
+                # Metrics command
+                if user_input.lower() in ['metrics', 'show metrics', 'stats']:
+                    self._display_metrics()
+                    continue
+                
+                # Conversational fallback: questions Lyra can't execute
+                lower = user_input.lower()
+                if any(lower.startswith(q) for q in [
+                    'how are', 'what is your name', 'who are you',
+                    'what are you', 'are you', 'do you', 'can you tell me about yourself',
+                ]):
+                    print(self.formatter.format_info(
+                        "I'm Lyra, an AI assistant that can manage files, open URLs, "
+                        "and launch apps. Type 'help' to see what I can do!"
+                    ))
+                    continue
+                
                 # Handle simulation
                 if user_input.lower().startswith('simulate '):
                     command = user_input[9:].strip()
@@ -129,6 +146,7 @@ class InteractiveCLI:
         print(f"{Colors.BOLD}System:{Colors.RESET}")
         print(f"  - history           - Show command history")
         print(f"  - logs              - Show execution logs")
+        print(f"  - metrics           - Show pipeline performance stats")
         print(f"  - simulate <command>  - Dry-run without execution")
         print(f"  - help              - Show this help")
         print(f"  - exit              - Quit Lyra")
@@ -180,6 +198,18 @@ class InteractiveCLI:
                 print(f"    {Colors.RED}Error: {entry.error[:50]}{Colors.RESET}")
         
         print(f"{Colors.DIM}{'='*60}{Colors.RESET}\n")
+    
+    def _display_metrics(self):
+        """Display pipeline metrics"""
+        try:
+            report = self.pipeline.metrics.get_report()
+            print(f"\n{Colors.BOLD}Pipeline Metrics:{Colors.RESET}")
+            print(f"{Colors.DIM}{'='*60}{Colors.RESET}")
+            for line in report.strip().splitlines():
+                print(f"  {line}")
+            print(f"{Colors.DIM}{'='*60}{Colors.RESET}\n")
+        except Exception as e:
+            print(self.formatter.format_warning(f"Could not retrieve metrics: {e}"))
     
     def _colorize(self, text: str, color: str) -> str:
         """Apply color to text"""

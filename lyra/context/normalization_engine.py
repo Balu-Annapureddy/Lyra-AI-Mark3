@@ -67,6 +67,11 @@ COMMON_WORDS_EXCLUSION: frozenset = frozenset({
     "last", "lost", "lust", "fist", "gist", "mist", "wist",
     # near "show"
     "shot", "shop", "shoe", "shod", "shoo",
+    # common question/conversational words that happen to be near commands
+    # 'how' is edit-distance 1 from 'show' (s-how vs how)
+    "how", "who", "now", "row", "sow", "bow", "cow", "low", "mow", "tow", "vow", "wow",
+    # 'what', 'when', 'where', 'why' — near various commands
+    "what", "when", "where", "why", "was", "has", "had", "are", "our",
     # near "find"
     "bind", "kind", "mind", "wind", "rind",
     # near "move"
