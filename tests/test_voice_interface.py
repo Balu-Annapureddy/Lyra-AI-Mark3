@@ -4,6 +4,7 @@ Tests push-to-talk voice interface with Whisper and pyttsx3
 """
 
 import sys
+import pytest
 from pathlib import Path
 
 # Add project root to path
@@ -33,6 +34,7 @@ def test_tts():
     voice.cleanup()
 
 
+@pytest.mark.skip(reason="Requires microphone hardware and interactive stdin — run manually with: python tests/test_voice_interface.py")
 def test_stt_manual():
     """Test speech-to-text with manual recording"""
     print("\n=== Testing STT (Manual Recording) ===")
@@ -55,6 +57,7 @@ def test_stt_manual():
     voice.cleanup()
 
 
+@pytest.mark.skip(reason="Requires microphone hardware and interactive stdin — run manually with: python tests/test_voice_interface.py")
 def test_push_to_talk():
     """Test push-to-talk interface"""
     print("\n=== Testing Push-to-Talk ===")

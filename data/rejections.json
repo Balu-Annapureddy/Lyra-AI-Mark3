@@ -159,6 +159,246 @@
         ""
       ],
       "weight_adjustment": 0.23978952727983707
+    },
+    {
+      "rejection_id": "10b484da-0d6c-468e-81eb-9323b97c6925",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-18T11:42:53.459451",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.24849066497880004
+    },
+    {
+      "rejection_id": "8ee9b6e9-4a4d-42a2-a856-74d2ae560a46",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-18T11:42:53.461733",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.2564949357461537
+    },
+    {
+      "rejection_id": "1c874f7b-3766-434e-a979-6196814675c6",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-18T11:42:53.461733",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.26390573296152586
+    },
+    {
+      "rejection_id": "cae7e9b9-2f00-4e4e-830e-34176203ef7f",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-18T11:42:53.466934",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.270805020110221
+    },
+    {
+      "rejection_id": "543cb041-7f01-40c1-bd55-e79a68ea13f3",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-18T11:42:53.468812",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.2772588722239781
+    },
+    {
+      "rejection_id": "dd3da743-88e2-4189-858c-663644211fc1",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-18T11:57:29.244624",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.2833213344056216
+    },
+    {
+      "rejection_id": "de034735-bbe1-422f-ace8-0d76a9520a15",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-18T11:57:29.248110",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.28903717578961646
+    },
+    {
+      "rejection_id": "25f82a4c-fdb0-4938-973a-4dac62f880e1",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-18T11:57:29.254354",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.29444389791664405
+    },
+    {
+      "rejection_id": "9a6211eb-83a7-42b4-bf65-cd78a72dda1a",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-18T11:57:29.257108",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.2995732273553991
+    },
+    {
+      "rejection_id": "8341787f-7750-45c0-a0ab-728985ae0fd2",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-18T11:57:29.260447",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.3044522437723423
+    },
+    {
+      "rejection_id": "efd751c2-af32-4a02-b0d3-f207ea526256",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-18T11:59:42.725694",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.30910424533583164
+    },
+    {
+      "rejection_id": "c70558c2-5c29-454f-a764-2ad8ca957bd4",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-18T11:59:42.728908",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.313549421592915
+    },
+    {
+      "rejection_id": "b24c82ae-f357-460c-9ad3-d2220e9d689e",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-18T11:59:42.733244",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.3178053830347946
+    },
+    {
+      "rejection_id": "9d48cfa2-5499-48f0-b549-4c2febaeabb1",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-18T11:59:42.736005",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.3218875824868201
+    },
+    {
+      "rejection_id": "a837334e-4f8d-48c5-92ae-5dd563c811b5",
+      "suggestion_type": "email_check",
+      "timestamp": "2026-02-18T11:59:42.739414",
+      "reason": "wrong_time",
+      "context": {
+        "project": "work"
+      },
+      "similarity_features": [
+        "email_check",
+        "work",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.3258096538021482
     }
   ],
   "morning_email_check": [
@@ -245,6 +485,132 @@
         ""
       ],
       "weight_adjustment": 0.19459101490553132
+    },
+    {
+      "rejection_id": "5dffd497-b614-4518-bcc3-de91190747fc",
+      "suggestion_type": "morning_email_check",
+      "timestamp": "2026-02-18T11:42:53.550613",
+      "reason": "wrong_time",
+      "context": {},
+      "similarity_features": [
+        "morning_email_check",
+        "",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.2079441541679836
+    },
+    {
+      "rejection_id": "71385d95-e501-4412-b698-d2cd955353de",
+      "suggestion_type": "morning_email_check",
+      "timestamp": "2026-02-18T11:42:53.556138",
+      "reason": "wrong_time",
+      "context": {},
+      "similarity_features": [
+        "morning_email_check",
+        "",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.21972245773362198
+    },
+    {
+      "rejection_id": "af61d2c7-9efa-4f6d-9010-3d0871689178",
+      "suggestion_type": "morning_email_check",
+      "timestamp": "2026-02-18T11:42:53.559687",
+      "reason": "wrong_time",
+      "context": {},
+      "similarity_features": [
+        "morning_email_check",
+        "",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.2302585092994046
+    },
+    {
+      "rejection_id": "2fa9119f-fa2f-4d2b-afd5-7aeac2b276b3",
+      "suggestion_type": "morning_email_check",
+      "timestamp": "2026-02-18T11:57:29.379136",
+      "reason": "wrong_time",
+      "context": {},
+      "similarity_features": [
+        "morning_email_check",
+        "",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.23978952727983707
+    },
+    {
+      "rejection_id": "a1de773a-8359-4c15-ad15-494047e01dcc",
+      "suggestion_type": "morning_email_check",
+      "timestamp": "2026-02-18T11:57:29.382292",
+      "reason": "wrong_time",
+      "context": {},
+      "similarity_features": [
+        "morning_email_check",
+        "",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.24849066497880004
+    },
+    {
+      "rejection_id": "3c4af145-5dd0-46f9-a10a-9cc4846170a7",
+      "suggestion_type": "morning_email_check",
+      "timestamp": "2026-02-18T11:57:29.386389",
+      "reason": "wrong_time",
+      "context": {},
+      "similarity_features": [
+        "morning_email_check",
+        "",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.2564949357461537
+    },
+    {
+      "rejection_id": "bf7d67cc-c443-4626-82f6-d538525f0784",
+      "suggestion_type": "morning_email_check",
+      "timestamp": "2026-02-18T11:59:42.813901",
+      "reason": "wrong_time",
+      "context": {},
+      "similarity_features": [
+        "morning_email_check",
+        "",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.26390573296152586
+    },
+    {
+      "rejection_id": "5d0bc15b-f9a6-4d57-8e68-92ff034a2b25",
+      "suggestion_type": "morning_email_check",
+      "timestamp": "2026-02-18T11:59:42.816978",
+      "reason": "wrong_time",
+      "context": {},
+      "similarity_features": [
+        "morning_email_check",
+        "",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.270805020110221
+    },
+    {
+      "rejection_id": "9efe70e2-600a-4741-a063-daaf3193b7c4",
+      "suggestion_type": "morning_email_check",
+      "timestamp": "2026-02-18T11:59:42.820026",
+      "reason": "wrong_time",
+      "context": {},
+      "similarity_features": [
+        "morning_email_check",
+        "",
+        "",
+        ""
+      ],
+      "weight_adjustment": 0.2772588722239781
     }
   ]
 }

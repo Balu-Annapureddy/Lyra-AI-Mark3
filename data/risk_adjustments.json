@@ -1,13 +1,13 @@
 {
   "adjustments": {
-    "create_file": 0.04
+    "create_file": 0.1
   },
-  "last_calibration": "2026-02-14T12:23:33.735488",
+  "last_calibration": "2026-02-18T11:59:42.768515",
   "history": [
     {
-      "timestamp": "2026-02-14T12:23:33.745048",
+      "timestamp": "2026-02-18T11:59:42.777314",
       "operation": "create_file",
-      "adjustment": 0.04,
+      "adjustment": 0.1,
       "reason": "manual_override"
     }
   ]

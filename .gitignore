@@ -50,10 +50,31 @@ data/*.sqlite
 data/logs/*.log
 config/user_config.yaml
 
+# Runtime-generated data (not source code)
+data/execution_plans/
+data/execution_logs/
+data/snapshots/
+data/workflows/
+data/behavioral_memory.db
+
+# Temp test output files
+*_out.txt
+targeted_out*.txt
+test_*.txt
+full_suite_out.txt
+untitled.txt
+valid_name.txt
+git_status.txt
+lyra/cli/cli_display_methods.txt
+
 # Temporary files
 *.tmp
 *.bak
 *.cache
+
+# Test output files
+*_out.txt
+untitled.txt
 
 # Test coverage
 .coverage

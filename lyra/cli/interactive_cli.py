@@ -42,31 +42,38 @@ class InteractiveCLI:
         # Main loop
         while self.running:
             try:
-                # Get user input
-                user_input = input(self._colorize("\n> ", Colors.CYAN + Colors.BOLD))
+                user_input = input(f"\n{self._colorize('>', Colors.CYAN)} ").strip()
                 
-                # Skip empty input
-                if not user_input.strip():
+                if not user_input:
                     continue
                 
-                # Check for exit commands
-                if user_input.lower() in ['exit', 'quit', 'q']:
+                # Handle special commands
+                if user_input.lower() in ['exit', 'quit']:
                     self.stop()
                     break
                 
-                # Check for help
-                if user_input.lower() in ['help', 'h', '?']:
+                if user_input.lower() == 'help':
                     self._print_help()
                     continue
                 
-                # Check for simulation mode
+                # Phase 5B: History command
+                if user_input.lower() == 'history':
+                    self._display_history()
+                    continue
+                
+                # Phase 5B: Logs command
+                if user_input.lower() == 'logs':
+                    self._display_logs()
+                    continue
+                
+                # Handle simulation
                 if user_input.lower().startswith('simulate '):
-                    command = user_input[9:]  # Remove 'simulate '
+                    command = user_input[9:].strip()
                     result = self.pipeline.simulate_command(command)
                     print(result.output)
                     continue
                 
-                # Process command
+                # Process normal command
                 result = self.pipeline.process_command(user_input)
                 print(result.output)
             
@@ -120,6 +127,8 @@ class InteractiveCLI:
         print(f"  - launch <app_name>")
         print()
         print(f"{Colors.BOLD}System:{Colors.RESET}")
+        print(f"  - history           - Show command history")
+        print(f"  - logs              - Show execution logs")
         print(f"  - simulate <command>  - Dry-run without execution")
         print(f"  - help              - Show this help")
         print(f"  - exit              - Quit Lyra")
@@ -130,6 +139,47 @@ class InteractiveCLI:
         print(f"  {self._colorize('>', Colors.CYAN)} launch notepad")
         print(f"  {self._colorize('>', Colors.CYAN)} simulate create file test.txt with content \"test\"")
         print()
+    
+    def _display_history(self):
+        """Display command history (Phase 5B)"""
+        history = self.pipeline.get_history()
+        
+        if not history:
+            print(f"\n{Colors.CYAN}No command history yet{Colors.RESET}")
+            return
+        
+        print(f"\n{Colors.BOLD}Command History:{Colors.RESET}")
+        print(f"{Colors.DIM}{'='*60}{Colors.RESET}")
+        
+        for i, entry in enumerate(history, 1):
+            status = f"{Colors.GREEN}[OK]{Colors.RESET}" if entry.success else f"{Colors.RED}[FAIL]{Colors.RESET}"
+            timestamp = entry.timestamp.split('T')[1].split('.')[0]  # HH:MM:SS
+            print(f"{Colors.CYAN}{i:2d}.{Colors.RESET} {status} {Colors.DIM}{timestamp}{Colors.RESET} {entry.command}")
+        
+        print(f"{Colors.DIM}{'='*60}{Colors.RESET}\n")
+    
+    def _display_logs(self):
+        """Display execution logs (Phase 5B)"""
+        logs = self.pipeline.get_logs()
+        
+        if not logs:
+            print(f"\n{Colors.CYAN}No execution logs yet{Colors.RESET}")
+            return
+        
+        print(f"\n{Colors.BOLD}Execution Logs:{Colors.RESET}")
+        print(f"{Colors.DIM}{'='*60}{Colors.RESET}")
+        
+        for i, entry in enumerate(logs, 1):
+            status = f"{Colors.GREEN}[OK]{Colors.RESET}" if entry.success else f"{Colors.RED}[FAIL]{Colors.RESET}"
+            timestamp = entry.timestamp.split('T')[1].split('.')[0]  # HH:MM:SS
+            duration_str = f"{entry.duration:.2f}s"
+            
+            print(f"{Colors.CYAN}{i:2d}.{Colors.RESET} {status} {Colors.DIM}{timestamp}{Colors.RESET} {entry.command[:40]}")
+            print(f"    Duration: {duration_str} | Plan: {entry.plan_id[:8]}...")
+            if entry.error:
+                print(f"    {Colors.RED}Error: {entry.error[:50]}{Colors.RESET}")
+        
+        print(f"{Colors.DIM}{'='*60}{Colors.RESET}\n")
     
     def _colorize(self, text: str, color: str) -> str:
         """Apply color to text"""

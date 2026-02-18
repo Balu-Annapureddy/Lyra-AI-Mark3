@@ -39,6 +39,9 @@ class Command:
     entities: Dict[str, Any] = field(default_factory=dict)
     confidence: float = 0.0
     
+    # Phase 6E: Decision Source
+    decision_source: str = "unknown"
+    
     # Safety assessment
     risk_level: RiskLevel = RiskLevel.SAFE
     requires_confirmation: bool = False
@@ -67,6 +70,7 @@ class Command:
             "intent": self.intent,
             "entities": self.entities,
             "confidence": self.confidence,
+            "decision_source": self.decision_source,
             "risk_level": self.risk_level.value,
             "requires_confirmation": self.requires_confirmation,
             "execution_plan": self.execution_plan,
@@ -88,6 +92,7 @@ class Command:
         cmd.intent = data.get("intent", "")
         cmd.entities = data.get("entities", {})
         cmd.confidence = data.get("confidence", 0.0)
+        cmd.decision_source = data.get("decision_source", "unknown")
         cmd.risk_level = RiskLevel(data.get("risk_level", "safe"))
         cmd.requires_confirmation = data.get("requires_confirmation", False)
         cmd.execution_plan = data.get("execution_plan", [])

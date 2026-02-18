@@ -172,7 +172,7 @@ class SafeFileTool:
                     success=False,
                     output=None,
                     error="Path not allowed",
-                    path=str(normalized_path),
+                    target_path=str(normalized_path),
                     operation="read"
                 )
             
@@ -181,7 +181,7 @@ class SafeFileTool:
                     success=False,
                     output=None,
                     error=f"File extension not allowed (allowed: {', '.join(self.ALLOWED_EXTENSIONS)})",
-                    path=str(normalized_path),
+                    target_path=str(normalized_path),
                     operation="read"
                 )
             
@@ -190,7 +190,7 @@ class SafeFileTool:
                     success=False,
                     output=None,
                     error="File does not exist",
-                    path=str(normalized_path),
+                    target_path=str(normalized_path),
                     operation="read"
                 )
             
@@ -199,7 +199,7 @@ class SafeFileTool:
                     success=False,
                     output=None,
                     error="Path is not a file",
-                    path=str(normalized_path),
+                    target_path=str(normalized_path),
                     operation="read"
                 )
             
@@ -208,7 +208,7 @@ class SafeFileTool:
                     success=False,
                     output=None,
                     error=f"File too large (max: {self.MAX_FILE_SIZE} bytes)",
-                    path=str(normalized_path),
+                    target_path=str(normalized_path),
                     operation="read"
                 )
             
@@ -222,7 +222,8 @@ class SafeFileTool:
                 success=True,
                 output=content,
                 error=None,
-                path=str(normalized_path),
+                # path=str(normalized_path), <-- Removed
+                target_path=str(normalized_path),
                 operation="read",
                 bytes_read=bytes_read
             )
@@ -233,7 +234,7 @@ class SafeFileTool:
                 success=False,
                 output=None,
                 error=str(e),
-                path=path,
+                target_path=path,
                 operation="read"
             )
     
@@ -258,7 +259,8 @@ class SafeFileTool:
                     success=False,
                     output=None,
                     error="Path not allowed",
-                    path=str(normalized_path),
+                    # path=str(normalized_path), <-- Removed
+                    target_path=str(normalized_path),
                     operation="write"
                 )
             
@@ -267,7 +269,7 @@ class SafeFileTool:
                     success=False,
                     output=None,
                     error=f"File extension not allowed (allowed: {', '.join(self.ALLOWED_EXTENSIONS)})",
-                    path=str(normalized_path),
+                    target_path=str(normalized_path),
                     operation="write"
                 )
             
@@ -278,7 +280,7 @@ class SafeFileTool:
                     success=False,
                     output=None,
                     error=f"Content too large (max: {self.MAX_FILE_SIZE} bytes)",
-                    path=str(normalized_path),
+                    target_path=str(normalized_path),
                     operation="write"
                 )
             
@@ -303,13 +305,14 @@ class SafeFileTool:
             # Log diff
             self._log_file_diff(normalized_path, old_content, content, append)
             
+            content_bytes = len(content.encode('utf-8'))
             self.logger.info(f"Wrote file: {normalized_path} ({content_bytes} bytes, append={append})")
             
             return FileOperationResult(
                 success=True,
                 output=f"Written {content_bytes} bytes",
                 error=None,
-                path=str(normalized_path),
+                target_path=str(normalized_path),
                 operation="write",
                 bytes_written=content_bytes
             )
@@ -320,7 +323,7 @@ class SafeFileTool:
                 success=False,
                 output=None,
                 error=str(e),
-                path=path,
+                target_path=path,
                 operation="write"
             )
     
@@ -365,7 +368,8 @@ class SafeFileTool:
             if result.target_path and os.path.exists(result.target_path):
                 try:
                     size = os.path.getsize(result.target_path)
-                    return size > 0
+                    # Verification passes if file exists (empty files are valid)
+                    return size >= 0
                 except:
                     return False
             return False

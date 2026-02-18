@@ -18,28 +18,34 @@ class ExecutionStep:
     """Single step in an execution plan"""
     step_id: str
     step_number: int
-    action_type: str  # e.g., "file_read", "file_write", "command_run"
-    tool_required: str  # Tool name from registry
-    parameters: Dict[str, Any]
-    risk_level: str  # LOW, MEDIUM, HIGH
-    requires_confirmation: bool
-    depends_on: List[str]  # Step IDs this depends on
-    reversible: bool
-    estimated_duration: float  # seconds
-    description: str  # Human-readable description
+    action_type: str = ""  # e.g., "file_read", "file_write", "command_run"
+    tool_required: str = ""  # Tool name from registry
+    parameters: Dict[str, Any] = None  # type: ignore[assignment]
+    risk_level: str = "LOW"  # LOW, MEDIUM, HIGH
+    requires_confirmation: bool = False
+    depends_on: List[str] = None  # type: ignore[assignment]  # Step IDs this depends on
+    reversible: bool = True
+    estimated_duration: float = 1.0  # seconds
+    description: str = ""  # Human-readable description
+
+    def __post_init__(self):
+        if self.parameters is None:
+            self.parameters = {}
+        if self.depends_on is None:
+            self.depends_on = []
 
 
 @dataclass
 class ExecutionPlan:
     """Complete execution plan for a request"""
     plan_id: str
-    request: str  # Original user request
     steps: List[ExecutionStep]
-    total_risk_score: float
-    requires_confirmation: bool
-    created_at: str
-    estimated_total_duration: float
-    confidence_score: float  # Overall plan confidence
+    total_risk_score: float = 0.0
+    requires_confirmation: bool = False
+    request: str = ""  # Original user request
+    created_at: str = ""  # ISO timestamp
+    estimated_total_duration: float = 0.0
+    confidence_score: float = 1.0  # Overall plan confidence
 
 
 class ExecutionPlanner:

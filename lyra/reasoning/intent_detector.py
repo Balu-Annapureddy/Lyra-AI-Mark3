@@ -52,12 +52,11 @@ class IntentDetector:
         )
         
         # File operations (MEDIUM to HIGH)
-        # Phase 5A: Enhanced patterns
+        # Phase 5A/5B: Enhanced patterns with synonyms
         self.register_intent(
             "write_file",
-            [r"create file\s+(\S+)\s+with content\s+[\"'](.+)[\"']",
-             r"write to file\s+(\S+):\s*(.+)",
-             r"create.*file", r"make.*file"],
+            [r"(?:create|make|new)\s+file\s+(\S+)\s+with content\s+[\"'](.+)[\"']",
+             r"write to file\s+(\S+):\s*(.+)"],
             RiskLevel.MEDIUM,
             {"path": r"file\s+(\S+)", "content": r"content\s+[\"'](.+)[\"']"}
         )
@@ -77,19 +76,21 @@ class IntentDetector:
         )
         
         # Application control (LOW)
-        # Phase 5A: URL and app launching
+        # Phase 5A/5B: URL and app launching with synonyms
         self.register_intent(
             "open_url",
-            [r"open\s+(https?://\S+)", r"open\s+(www\.\S+)", r"open\s+([a-z0-9.-]+\.com)"],
+            [r"(?:open|browse|visit|go\s+to|navigate\s+to)\s+(https?://\S+)",
+             r"(?:open|browse|visit|go\s+to)\s+(www\.\S+)",
+             r"(?:open|browse|visit|go\s+to)\s+([a-z0-9.-]+\.com)"],
             RiskLevel.LOW,
-            {"url": r"open\s+(\S+)"}
+            {"url": r"(?:open|browse|visit|go\s+to|navigate\s+to)\s+(\S+)"}
         )
         
         self.register_intent(
             "launch_app",
-            [r"launch\s+(\w+)", r"start\s+(\w+)", r"open\s+(notepad|calculator|chrome|firefox)"],
+            [r"(?:launch|start|run|open)\s+(\w+)"],
             RiskLevel.LOW,
-            {"app_name": r"(?:launch|start|open)\s+(\w+)"}
+            {"app_name": r"(?:launch|start|run|open)\s+(\w+)"}
         )
         
         self.register_intent(

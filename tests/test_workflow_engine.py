@@ -68,9 +68,29 @@ def test_workflow_storage():
     return workflow.workflow_id
 
 
-def test_workflow_manager(workflow_id: str):
+def test_workflow_manager():
     """Test workflow manager"""
     print("\n=== Testing Workflow Manager ===")
+    
+    # Create and save a workflow to use
+    store = WorkflowStore()
+    steps = [
+        WorkflowStep(
+            step_id=str(uuid.uuid4()),
+            command={"intent": "open_application", "app": "notepad"},
+            order=0,
+            description="Open Notepad"
+        )
+    ]
+    workflow = Workflow(
+        workflow_id=str(uuid.uuid4()),
+        name="Manager Test Workflow",
+        description="Workflow for manager test",
+        steps=steps,
+        tags=["test"]
+    )
+    store.save_workflow(workflow)
+    workflow_id = workflow.workflow_id
     
     manager = WorkflowManager()
     
@@ -86,21 +106,39 @@ def test_workflow_manager(workflow_id: str):
     print("✅ Workflow Manager: PASSED")
 
 
-def test_workflow_risk_aggregation(workflow_id: str):
+def test_workflow_risk_aggregation():
     """Test workflow risk aggregation"""
     print("\n=== Testing Workflow Risk Aggregation ===")
     
     store = WorkflowStore()
     aggregator = WorkflowRiskAggregator()
     
+    # Create and save a workflow to use
+    steps = [
+        WorkflowStep(
+            step_id=str(uuid.uuid4()),
+            command={"intent": "open_application", "app": "notepad"},
+            order=0,
+            description="Open Notepad"
+        )
+    ]
+    workflow = Workflow(
+        workflow_id=str(uuid.uuid4()),
+        name="Risk Test Workflow",
+        description="Workflow for risk test",
+        steps=steps,
+        tags=["test"]
+    )
+    store.save_workflow(workflow)
+    
     # Load workflow
-    workflow = store.load_workflow(workflow_id)
+    loaded = store.load_workflow(workflow.workflow_id)
     
     # Calculate risk with different trust scores
     print("\nRisk Assessment:")
     
     for trust_score in [0.2, 0.5, 0.8]:
-        risk = aggregator.calculate_workflow_risk(workflow, trust_score)
+        risk = aggregator.calculate_workflow_risk(loaded, trust_score)
         print(f"\n  Trust Score: {trust_score:.1f}")
         print(f"  ✓ Risk Level: {risk.level}")
         print(f"  ✓ Risk Score: {risk.score:.2f}")

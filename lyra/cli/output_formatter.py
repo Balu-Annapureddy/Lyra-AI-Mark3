@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 """
-Output Formatter - Phase 5A
+Output Formatter - Phase 5A/5B
 Formats execution results for user display
 Color-coded, structured output
 """
@@ -16,6 +17,7 @@ class Colors:
     BLUE = '\033[94m'
     CYAN = '\033[96m'
     BOLD = '\033[1m'
+    DIM = '\033[2m'
     RESET = '\033[0m'
 
 
@@ -23,6 +25,7 @@ class OutputFormatter:
     """
     Format execution results for user display
     Phase 5A: Clean, structured output
+    Phase 5B: Improved confirmation flow
     """
     
     def __init__(self, use_colors: bool = True):
@@ -84,24 +87,64 @@ class OutputFormatter:
         lines = []
         
         lines.append(self._colorize("Execution Plan:", Colors.BOLD))
-        lines.append(self._colorize("[WARN] Warning", Colors.YELLOW))
         lines.append(f"  {plan_description}")
         lines.append(f"  Steps: {steps}")
         lines.append(f"  Risk: {self._format_risk(risk)}")
         
         return "\n".join(lines)
     
+    def format_confirmation(self, action: str, risk: float, details: str = "") -> str:
+        """
+        Format confirmation request with risk level (Phase 5B)
+        
+        Args:
+            action: Action description
+            risk: Risk score (0.0-1.0)
+            details: Additional details
+        
+        Returns:
+            Formatted confirmation message
+        """
+        lines = []
+        
+        # Risk level badge
+        if risk < 0.3:
+            risk_badge = self._colorize("[LOW RISK]", Colors.GREEN)
+            risk_label = "LOW"
+        elif risk < 0.6:
+            risk_badge = self._colorize("[MEDIUM RISK]", Colors.YELLOW)
+            risk_label = "MEDIUM"
+        else:
+            risk_badge = self._colorize("[HIGH RISK]", Colors.RED)
+            risk_label = "HIGH"
+        
+        lines.append(f"\n{risk_badge} Confirmation Required")
+        lines.append(f"{Colors.DIM}{'='*50}{Colors.RESET}")
+        lines.append(f"\n{Colors.BOLD}Action:{Colors.RESET} {action}")
+        
+        if details:
+            lines.append(f"{Colors.DIM}{details}{Colors.RESET}")
+        
+        lines.append(f"\n{Colors.BOLD}Risk Level:{Colors.RESET} {risk_label} ({risk:.0%})")
+        lines.append(f"{Colors.DIM}{'='*50}{Colors.RESET}")
+        
+        return "\n".join(lines)
+    
     def format_confirmation_prompt(self) -> str:
-        """Format confirmation prompt"""
-        return self._colorize("Proceed? (y/n): ", Colors.YELLOW)
+        """Format confirmation prompt (y/n)"""
+        return self._colorize("\nProceed? (y/n): ", Colors.YELLOW + Colors.BOLD)
     
     def format_info(self, message: str) -> str:
         """Format info message"""
-        return self._colorize(f"ℹ {message}", Colors.BLUE)
+        return self._colorize(f"[INFO] {message}", Colors.CYAN)
+    
+    def format_cancellation(self) -> str:
+        """Format cancellation message (Phase 5B)"""
+        return self._colorize("\n[CANCELLED] Operation cancelled by user", Colors.YELLOW)
     
     def format_warning(self, message: str) -> str:
         """Format warning message"""
-        return self._colorize(f"⚠ {message}", Colors.YELLOW)
+        return self._colorize(f"[WARN] {message}", Colors.YELLOW)
     
     def _format_risk(self, risk: float) -> str:
         """Format risk score with color"""
