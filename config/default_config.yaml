@@ -2,7 +2,7 @@
 
 lyra:
   name: "Lyra"
-  version: "0.1.0"
+  version: "0.2.0"
   mode: "development"  # development, production
 
 interaction:
@@ -42,3 +42,67 @@ logging:
   console_output: true
   max_log_size_mb: 10
   backup_count: 5
+
+# ---------------------------------------------------------------------------
+# Cognitive Operating Layer — Future Subsystem Configuration
+# Phase F1: Config foundation for lazy-loaded subsystems
+# ---------------------------------------------------------------------------
+
+embedding:
+  model: "all-MiniLM-L6-v2"
+  lazy_load: true
+  confidence_threshold: 0.75
+  mid_confidence_threshold: 0.5
+  unload_after_seconds: 120
+  precompute_intents: true
+  cache_embeddings: true
+  device: "cpu"
+
+llm:
+  model_path: "models/qwen2.5-3b-q4.gguf"
+  lazy_load: true
+  max_tokens: 512
+  temperature: 0.1
+  structured_output_only: true
+  unload_after_seconds: 180
+  allow_execution: false
+  memory_guard_min_free_gb: 0.5
+
+emotion:
+  enabled: true
+  rule_based_enabled: true
+  llm_assisted_enabled: true
+  sarcasm_detection: true
+  intensity_threshold: 0.6
+
+multilingual:
+  enabled: true
+  auto_detect: true
+  mirror_response_language: true
+  fallback_language: "en"
+
+vision:
+  enabled: false
+  ocr_enabled: false
+  lazy_load: true
+  unload_after_seconds: 120
+  tesseract_path: null
+
+search:
+  enabled: false
+  provider: "duckduckgo"
+  max_results: 5
+  safe_mode: true
+
+memory_intelligence:
+  enabled: true
+  preference_learning: true
+  behavioral_tracking: true
+  proactive_suggestions: false
+
+resource_monitor:
+  enabled: true
+  max_ram_usage_gb: 4.0
+  warn_threshold_gb: 0.8
+  enforce_single_heavy_model: true
+  log_usage: true

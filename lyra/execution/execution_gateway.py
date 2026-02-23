@@ -1,14 +1,16 @@
 """
-Execution Gateway - Phase 4A
+Execution Gateway - Phase 4A + Phase F4
 Single controlled entry point for ALL tool execution
 Validates, enforces safety, logs all executions
-NO direct OS access - validation only for Phase 4A
+Phase F4: Formalized risk classification, intent whitelisting,
+          execution validation gate, LLM-bypass protection.
 """
 
 import json
+from enum import Enum
 from pathlib import Path
 from typing import Dict, Any, List, Optional
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, field, asdict
 from datetime import datetime
 
 from lyra.planning.execution_planner import ExecutionPlan, ExecutionStep
@@ -21,6 +23,65 @@ from lyra.core.logger import get_logger
 # Phase 4C imports
 from lyra.execution.dependency_resolver import DependencyResolver
 from lyra.execution.rollback_manager import RollbackManager
+
+
+# ======================================================================
+# Phase F4: Risk Level Enum
+# ======================================================================
+
+class RiskLevel(Enum):
+    """Formalized risk classification for execution safety."""
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
+    CRITICAL = 4
+
+
+# ======================================================================
+# Phase F4: Supported Intents Whitelist
+# ======================================================================
+
+SUPPORTED_INTENTS = {
+    "create_file",
+    "write_file",
+    "delete_file",
+    "read_file",
+    "open_url",
+    "launch_app",
+    "search_web",
+    "screen_read",
+    "code_help",
+    "conversation",
+    "autonomous_goal",
+    "run_command",
+    "get_status",
+}
+
+# Intent → RiskLevel mapping
+INTENT_RISK_MAP: Dict[str, RiskLevel] = {
+    "create_file":  RiskLevel.LOW,
+    "write_file":   RiskLevel.LOW,
+    "read_file":    RiskLevel.LOW,
+    "open_url":     RiskLevel.MEDIUM,
+    "search_web":   RiskLevel.LOW,
+    "launch_app":   RiskLevel.MEDIUM,
+    "delete_file":  RiskLevel.HIGH,
+    "screen_read":  RiskLevel.MEDIUM,
+    "code_help":    RiskLevel.LOW,
+    "conversation": RiskLevel.LOW,
+    "autonomous_goal": RiskLevel.HIGH,
+    "run_command":  RiskLevel.MEDIUM,
+    "get_status":   RiskLevel.LOW,
+}
+
+
+# ======================================================================
+# Phase F4: Custom Exception
+# ======================================================================
+
+class UnsupportedIntentError(Exception):
+    """Raised when an intent is not in the supported whitelist."""
+    pass
 
 
 @dataclass
@@ -56,6 +117,15 @@ class ExecutionResult:
     timestamp: str
 
 
+@dataclass
+class ExecutionRequestResult:
+    """Phase F4: Result of execution validation gate."""
+    allowed: bool
+    risk_level: RiskLevel
+    requires_confirmation: bool
+    reason: Optional[str] = None
+
+
 class ExecutionGateway:
     """
     Single controlled entry point for ALL tool execution
@@ -88,7 +158,126 @@ class ExecutionGateway:
         self._panic_stop = False
         self._panic_reason = ""
         
-        self.logger.info("Execution gateway initialized with Phase 4C safety features")
+        self.logger.info("Execution gateway initialized with Phase 4C + F4 safety features")
+
+    # ------------------------------------------------------------------
+    # Phase F4: Execution Validation Gate
+    # ------------------------------------------------------------------
+
+    def validate_execution_request(
+        self,
+        intent: str,
+        params: Dict[str, Any],
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> ExecutionRequestResult:
+        """
+        Phase F4: Validate an execution request before it reaches
+        plan creation or tool dispatch.
+
+        Checks:
+            1. Intent is in SUPPORTED_INTENTS whitelist
+            2. Risk level classification
+            3. HIGH-risk commands require explicit confirmation
+            4. CRITICAL-risk commands are always blocked
+            5. LLM-sourced commands face stricter validation
+
+        Args:
+            intent:   Classified intent string
+            params:   Extracted parameters
+            metadata: Source information, e.g. {"source": "embedding"}
+
+        Returns:
+            ExecutionRequestResult
+        """
+        if metadata is None:
+            metadata = {}
+
+        source = metadata.get("source", "unknown")
+        confirmed = metadata.get("confirmed", False)
+        semantic_valid = metadata.get("semantic_valid", True)
+
+        # === 1. Whitelist check ===
+        if intent not in SUPPORTED_INTENTS:
+            self.logger.warning(
+                f"[SECURITY] Unsupported intent rejected: '{intent}' "
+                f"(source={source})"
+            )
+            return ExecutionRequestResult(
+                allowed=False,
+                risk_level=RiskLevel.CRITICAL,
+                requires_confirmation=False,
+                reason=f"Unsupported intent: '{intent}'",
+            )
+
+        # === 2. Risk classification ===
+        risk = INTENT_RISK_MAP.get(intent, RiskLevel.CRITICAL)
+
+        # === 3. CRITICAL risk — always blocked ===
+        if risk == RiskLevel.CRITICAL:
+            self.logger.warning(
+                f"[SECURITY] CRITICAL risk intent blocked: '{intent}'"
+            )
+            return ExecutionRequestResult(
+                allowed=False,
+                risk_level=risk,
+                requires_confirmation=False,
+                reason="CRITICAL risk level — execution always blocked",
+            )
+
+        # === 4. LLM-bypass guard ===
+        if source == "llm":
+            self.logger.info(
+                f"[LLM-GUARD] LLM-sourced execution request: "
+                f"intent={intent}, risk={risk.name}"
+            )
+
+            # LLM cannot bypass semantic validation
+            if not semantic_valid:
+                self.logger.warning(
+                    f"[SECURITY] LLM-source rejected: semantic validation "
+                    f"not passed for '{intent}'"
+                )
+                return ExecutionRequestResult(
+                    allowed=False,
+                    risk_level=risk,
+                    requires_confirmation=False,
+                    reason="LLM-sourced command rejected: "
+                           "semantic validation not passed",
+                )
+
+            # LLM HIGH-risk requires confirmation
+            if risk == RiskLevel.HIGH and not confirmed:
+                self.logger.warning(
+                    f"[SECURITY] LLM-source HIGH risk without "
+                    f"confirmation: '{intent}'"
+                )
+                return ExecutionRequestResult(
+                    allowed=False,
+                    risk_level=risk,
+                    requires_confirmation=True,
+                    reason="LLM-sourced HIGH risk command requires "
+                           "explicit confirmation",
+                )
+
+        # === 5. HIGH risk confirmation check (all sources) ===
+        if risk == RiskLevel.HIGH and not confirmed:
+            self.logger.info(
+                f"HIGH risk intent '{intent}' requires confirmation"
+            )
+            return ExecutionRequestResult(
+                allowed=False,
+                risk_level=risk,
+                requires_confirmation=True,
+                reason="HIGH risk command requires confirmation",
+            )
+
+        # === 6. All checks passed ===
+        return ExecutionRequestResult(
+            allowed=True,
+            risk_level=risk,
+            requires_confirmation=False,
+            reason=None,
+        )
     
     def execute_plan(self, plan: ExecutionPlan, 
                     confirmed: bool = False,

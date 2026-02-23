@@ -24,6 +24,16 @@ from lyra.memory.session_memory import SessionMemory
 from lyra.metrics.metrics_collector import MetricsCollector
 from lyra.context.normalization_engine import NormalizationEngine
 from lyra.context.conversation_layer import ConversationLayer
+from lyra.semantic.intent_router import EmbeddingIntentRouter
+from lyra.llm.escalation_layer import LLMEscalationAdvisor
+from lyra.context.emotion.detector import EmotionDetector
+from lyra.context.language_mirror import LanguageMirror
+from lyra.core.reasoning_depth import ReasoningDepthController, ReasoningLevel
+from lyra.memory.context_compressor import ContextCompressor
+from lyra.core.integrity_watchdog import IntegrityWatchdog
+from lyra.capabilities.capability_registry import CapabilityRegistry
+from lyra.policy.policy_engine import PolicyEngine, PolicyViolationException
+from lyra.orchestration.task_orchestrator import TaskOrchestrator
 from lyra.core.logger import get_logger
 import time
 
@@ -82,14 +92,76 @@ class LyraPipeline:
         # Phase 6I: Conversational Intelligence
         self.conversation_layer = ConversationLayer()
 
+        # Phase F2: Embedding Intent Router (primary classifier)
+        self.embedding_router = EmbeddingIntentRouter()
+        self.use_embedding_router = True  # Feature flag
+
+        # Phase F5/X4: Gemini API Escalation Advisor
+        self.advisor = LLMEscalationAdvisor()
+
+        # Phase F6: Emotion & Sarcasm Detection (subsystem G)
+        self.emotion_detector = EmotionDetector()
+
+        # Phase F10: Integrity Watchdog
+        self.watchdog = IntegrityWatchdog()
+        
+        # Phase X1: Capability & Policy Framework
+        self.capability_registry = CapabilityRegistry()
+        self.policy_engine = PolicyEngine(self.capability_registry)
+        self._register_default_capabilities()
+        
+        # Phase X2: Autonomous Orchestration
+        self.orchestrator = TaskOrchestrator()
+        
         self.logger.info("Lyra pipeline initialized")
 
-    def _handle_metrics(self) -> PipelineResult:
+    def _register_default_capabilities(self):
+        """Register the baseline capabilities of Lyra."""
+        self.capability_registry.register_capability(
+            name="FileSystemCapability",
+            allowed_intents=["create_file", "delete_file", "write_file", "read_file", "list_directory", "move_file", "copy_file"],
+            max_risk="HIGH"
+        )
+        self.capability_registry.register_capability(
+            name="ConversationCapability",
+            allowed_intents=["chat", "clarify", "conversation", "unknown"],
+            max_risk="LOW"
+        )
+        self.capability_registry.register_capability(
+            name="SystemCapability",
+            allowed_intents=["shutdown", "restart", "upgrade", "get_status", "help", "autonomous_goal"],
+            max_risk="CRITICAL"
+        )
+        self.capability_registry.register_capability(
+            name="CodeExecutionCapability",
+            allowed_intents=["run_script", "execute_command", "install_package", "run_command"],
+            max_risk="HIGH"
+        )
+        self.capability_registry.register_capability(
+            name="AppLauncherCapability",
+            allowed_intents=["launch_app", "open_url"],
+            max_risk="MEDIUM"
+        )
+
+    def _wrap_result(self, result: PipelineResult, emotion: Dict[str, Any], language: str = "en") -> PipelineResult:
+        """Apply emotion-based logic and language mirroring to any result."""
+        # 1. Soften tone
+        result.output = self.conversation_layer.soften_response(result.output, emotion)
+        # 2. Mirror language (Phase F7)
+        result.output = LanguageMirror.mirror_response(result.output, language)
+        
+        # 3. Phase F9: Add Response to Interaction History
+        if hasattr(self, 'session_memory'):
+            self.session_memory.add_interaction(role="assistant", content=result.output)
+            
+        return result
+
+    def _handle_metrics(self, emotion: Dict[str, Any], language: str = "en") -> PipelineResult:
         """Phase 6G: Return internal metrics report"""
         report = self.metrics.get_report()
-        return PipelineResult(success=True, output=report)
+        return self._wrap_result(PipelineResult(success=True, output=report), emotion, language)
 
-    def _handle_status(self) -> PipelineResult:
+    def _handle_status(self, emotion: Dict[str, Any], language: str = "en") -> PipelineResult:
         """Phase 6D: Return system status"""
         context_intent = self.context.get_last_intent()
         conf = context_intent.get("confidence", 0.0) if context_intent else 0.0
@@ -101,12 +173,12 @@ class LyraPipeline:
             f"- Last Intent Confidence: {conf:.2f}\n"
             f"- Context Active: {'Yes' if context_intent else 'No'}"
         )
-        return PipelineResult(success=True, output=status_msg)
+        return self._wrap_result(PipelineResult(success=True, output=status_msg), emotion, language)
 
-    def _handle_pending(self) -> PipelineResult:
+    def _handle_pending(self, emotion: Dict[str, Any], language: str = "en") -> PipelineResult:
         """Phase 6D: Check pending clarification details"""
         if not self.clarification_manager.has_pending():
-            return PipelineResult(success=True, output="No pending clarification.")
+            return self._wrap_result(PipelineResult(success=True, output="No pending clarification."), emotion, language)
             
         mgr = self.clarification_manager
         msg = (
@@ -115,16 +187,16 @@ class LyraPipeline:
             f"- Missing Fields: {', '.join(mgr.missing_fields)}\n"
             f"- Last Question: {mgr.last_question}"
         )
-        return PipelineResult(success=True, output=msg)
+        return self._wrap_result(PipelineResult(success=True, output=msg), emotion, language)
 
-    def _handle_last_intent(self) -> PipelineResult:
+    def _handle_last_intent(self, emotion: Dict[str, Any], language: str = "en") -> PipelineResult:
         """Phase 6D: Dump last intent JSON"""
         last = self.context.get_last_intent()
         if not last:
-             return PipelineResult(success=True, output="No intent in history.")
-        return PipelineResult(success=True, output=json.dumps(last, indent=2))
+             return self._wrap_result(PipelineResult(success=True, output="No intent in history."), emotion, language)
+        return self._wrap_result(PipelineResult(success=True, output=json.dumps(last, indent=2)), emotion, language)
 
-    def _handle_explain(self) -> PipelineResult:
+    def _handle_explain(self, emotion: Dict[str, Any], language: str = "en") -> PipelineResult:
         """Phase 6D: Explain current state"""
         last = self.context.get_last_intent()
         pending = self.clarification_manager.has_pending()
@@ -135,7 +207,7 @@ class LyraPipeline:
             f"- Last Confidence: {last.get('confidence', 0.0) if last else 0.0}\n"
             f"- Execution Allowed: {'No (Pending)' if pending else 'Yes'}"
         )
-        return PipelineResult(success=True, output=msg)
+        return self._wrap_result(PipelineResult(success=True, output=msg), emotion, language)
     
     def _execute_command(self, command: Command, auto_confirm: bool = False) -> PipelineResult:
         """
@@ -243,19 +315,39 @@ class LyraPipeline:
           → Execution Gateway
         """
         try:
-            # ── Phase 6D: Introspection Interceptors (ALWAYS FIRST) ──────────
-            # These must bypass normalization entirely — they are exact keywords.
+            # ── Phase F10: Watchdog Command Start ──────────────────────────
+            self.watchdog.record_command()
+
+            # ── Phase F9: Add Input to Interaction History ──────────────────
+            self.session_memory.add_interaction(role="user", content=user_input)
+
+            # ── Phase 6D: Introspection Interceptors (ALWAYS FIRST) ─────────
             low_input = user_input.lower().strip()
+            
+            # ── Phase F6: Emotion & Sarcasm Detection (MOVE UP for interceptors) ─────
+            emotion_result = self.emotion_detector.detect(user_input, context=self.context.get_last_intent())
+            self.context.last_emotion = emotion_result
+
+            # ── Phase F7: Language Detection & Mirroring ───────────────────────────
+            detected_lang = LanguageMirror.detect_language(user_input)
+            self.session_memory.update_language_preference(detected_lang)
+            
+            language = detected_lang
+            if detected_lang == "en" and self.session_memory.preferred_language != "en" and len(user_input.strip()) < 10:
+                language = self.session_memory.preferred_language
+            
+            self.logger.info(f"Language detected: {language}")
+
             if low_input == "status":
-                return self._handle_status()
+                return self._handle_status(emotion_result, language)
             elif low_input == "pending":
-                return self._handle_pending()
+                return self._handle_pending(emotion_result, language)
             elif low_input == "last_intent":
-                return self._handle_last_intent()
+                return self._handle_last_intent(emotion_result, language)
             elif low_input == "explain":
-                return self._handle_explain()
+                return self._handle_explain(emotion_result, language)
             elif low_input == "metrics":
-                return self._handle_metrics()
+                return self._handle_metrics(emotion_result, language)
 
             # ── Phase 6H: Input Normalization ────────────────────────────────
             norm_result = self.normalization_engine.normalize(user_input)
@@ -267,14 +359,14 @@ class LyraPipeline:
                 self.logger.warning(
                     f"Dangerous token detected near '{detected}': '{user_input}'"
                 )
-                return PipelineResult(
+                return self._wrap_result(PipelineResult(
                     success=False,
                     output=(
                         f"Did you mean '{detected}'? "
                         f"Destructive commands must be typed explicitly."
                     ),
                     error="Dangerous token detected"
-                )
+                ), emotion_result, language)
 
             if norm_result.was_modified:
                 self.logger.info(
@@ -284,7 +376,13 @@ class LyraPipeline:
                 # Only count as applied when no dangerous token involved
                 self.metrics.increment("normalization_applied")
                 user_input = norm_result.normalized
-
+            
+            # (Emotion already detected above status checks)
+            self.logger.info(f"Emotion detected: {emotion_result['emotion']} (intensity={emotion_result['intensity']:.2f})")
+            
+            # Behavioral Effect: Force confirmation if sarcastic or high-intensity anger
+            force_confirmation = emotion_result.get("requires_confirmation", False)
+            
             # ── Phase 6I: Conversational Intelligence Layer ──────────────────
             conv_result = self.conversation_layer.process(user_input)
 
@@ -295,14 +393,14 @@ class LyraPipeline:
                 self.logger.warning(
                     f"Destructive synonym '{term}' in: '{user_input}'"
                 )
-                return PipelineResult(
+                return self._wrap_result(PipelineResult(
                     success=False,
                     output=(
                         f"The term '{term}' is destructive. "
                         f"Please use an explicit supported command."
                     ),
                     error="Destructive synonym detected"
-                )
+                ), emotion_result, language)
 
             if conv_result.was_modified:
                 self.logger.info(
@@ -352,19 +450,19 @@ class LyraPipeline:
                     self.logger.info(f"Clarification resolved: {cmd.intent}")
                 elif self.clarification_manager.has_pending():
                     # Phase 6D: Validation Guard (Invalid input, ask again)
-                    return PipelineResult(
+                    return self._wrap_result(PipelineResult(
                         success=False,
                         output=f"Invalid input. {self.clarification_manager.last_question}",
                         error="Clarification Validation Failed"
-                    )
+                    ), emotion_result, language)
                 else:
                     # Phase 6D: Abort (Max attempts exceeded)
                     self.metrics.increment("clarification_failures")
-                    return PipelineResult(
+                    return self._wrap_result(PipelineResult(
                         success=False,
                         output="Too many failed clarification attempts. Aborting.",
                         error="Clarification Aborted"
-                    )
+                    ), emotion_result, language)
 
             # 1. Refinement Check (Phase 6B)
             # Check if user is refining the previous intent (Only if no command yet)
@@ -382,8 +480,162 @@ class LyraPipeline:
                     cmd.decision_source = "refinement"
                     intents_to_execute.append(cmd)
             
-            # 2. Semantic Intent Layer (Phase 6A/6E) - Multi-Intent
-            # Only run if not already refined or resolved
+            # 2a. Phase F2: Embedding Intent Router (PRIMARY classifier)
+            # Runs before the semantic rule-based layer.
+            if not intents_to_execute and self.use_embedding_router:
+                try:
+                    emb_start = time.perf_counter()
+                    emb_result = self.embedding_router.classify(user_input)
+                    emb_duration = (time.perf_counter() - emb_start) * 1000
+                    self.metrics.record_latency("embedding", emb_duration)
+                    self.metrics.increment("embedding_calls")
+
+                    emb_intent = emb_result.get("intent", "unknown")
+                    emb_conf = emb_result.get("confidence", 0.0)
+
+                    if emb_intent != "unknown":
+                        # Use embedding result — feed into semantic layer for
+                        # parameter extraction, then continue to execution.
+                        self.logger.info(
+                            f"Embedding router: intent={emb_intent} "
+                            f"conf={emb_conf:.3f} "
+                            f"escalation={emb_result.get('requires_escalation')}"
+                        )
+
+                        # Phase F3: Use extract_parameters for targeted extraction
+                        params = self.semantic_engine.extract_parameters(
+                            emb_intent, user_input
+                        )
+                        merged_conf = emb_conf * _conv_confidence_modifier
+                        cmd = Command(
+                            raw_input=user_input,
+                            intent=emb_intent,
+                            entities=params,
+                            confidence=merged_conf,
+                        )
+                        cmd.decision_source = "embedding"
+                        intents_to_execute.append(cmd)
+
+                        self.logger.info(
+                            f"Embedding Intents: "
+                            f"{[c.intent for c in intents_to_execute]}"
+                        )
+
+                except Exception as e:
+                    self.logger.error(
+                        f"Embedding router failed, falling back: {e}"
+                    )
+                    # Fallthrough to semantic / regex
+
+            # ── Phase F8: Adaptive Reasoning Depth ────────────────────────────────
+            emb_intent = "unknown"
+            emb_conf = 0.0
+            if 'emb_result' in locals():
+                emb_intent = emb_result.get("intent", "unknown")
+                emb_conf = emb_result.get("confidence", 0.0)
+            
+            planning_keywords = ["organize", "clean up", "figure out", "optimize", "arrange"]
+            has_planning = any(kw in user_input.lower() for kw in planning_keywords)
+            
+            # Use conversation history for turn count
+            turn_count = len(self.command_history.commands)
+            
+            reasoning_level = ReasoningDepthController.determine_level(
+                intent=emb_intent,
+                embedding_confidence=emb_conf,
+                ambiguity_score=1.0 - emb_conf,
+                conversation_turn_count=turn_count,
+                contains_planning_keywords=has_planning,
+                user_input=user_input,
+                emotion_state=emotion_result.get("emotion", "neutral")
+            )
+            self.context.last_reasoning_level = reasoning_level
+            self.logger.info(f"Reasoning Level: {reasoning_level.value.upper()}")
+            
+            # Phase F10: Watchdog Reasoning Level
+            self.watchdog.record_reasoning_level(reasoning_level.value)
+
+            # -------------------------------------------------------
+            # Phase F5/F8: LLM Escalation (Advisor Brain)
+            # Triggers if depth >= STANDARD and (low confidence or planning detected)
+            # -------------------------------------------------------
+            should_escalate = False
+            
+            if not intents_to_execute:
+                should_escalate = True
+            elif any(c.intent == "conversation" for c in intents_to_execute):
+                should_escalate = True
+            elif has_planning:
+                should_escalate = True
+            elif 'emb_result' in locals() and emb_result.get("requires_escalation"):
+                should_escalate = True
+                
+            if should_escalate and reasoning_level != ReasoningLevel.SHALLOW:
+                # ── Phase F9: Contextual Memory Compression ──────────────────
+                turn_count = len(self.session_memory.get_interaction_history())
+                if ContextCompressor.should_compress(turn_count):
+                    self.logger.info(f"Compression triggered ({turn_count} turns)...")
+                    # Phase F10: Watchdog Compression
+                    self.watchdog.record_compression()
+                    compressed_history = ContextCompressor.compress(
+                        self.session_memory.get_interaction_history(),
+                        model_advisor=self.advisor
+                    )
+                    self.session_memory.set_interaction_history(compressed_history)
+
+                self.logger.info(f"Escalating to LLM Advisor (Depth: {reasoning_level.value})...")
+                # Phase F10: Watchdog Escalation
+                self.watchdog.record_escalation()
+                # Pass current best guess if any
+                first_guess = intents_to_execute[0].__dict__ if intents_to_execute else None
+                advisor_report = self.advisor.analyze(
+                    user_input, 
+                    embedding_result=first_guess,
+                    context=self.context.get_last_intent(),
+                    language=language,
+                    reasoning_level=reasoning_level.value,
+                    history=self.session_memory.get_interaction_history(),
+                    watchdog=self.watchdog
+                )
+                
+                if advisor_report.get("intent") != "unknown":
+                    # Phase F10: Watchdog Loop Detection
+                    self.watchdog.detect_escalation_loop(advisor_report["intent"])
+                    self.logger.info(f"LLM Advisor recommended: {advisor_report['intent']} (conf: {advisor_report['confidence']})")
+                    
+                    # LLM only advises intent. We re-run extraction for safety.
+                    params = self.semantic_engine.extract_parameters(
+                        advisor_report["intent"], user_input
+                    )
+                    
+                    cmd = Command(
+                        raw_input=user_input,
+                        intent=advisor_report["intent"],
+                        entities=params,
+                        confidence=advisor_report["confidence"]
+                    )
+                    # In Phase F5, advisor recommendation replaces others (isolated check)
+                    intents_to_execute = [cmd]
+
+                    # ── Phase X2: Autonomous Orchestration Trigger ──────────
+                    if reasoning_level == ReasoningLevel.DEEP and advisor_report.get("intent") in ["complex_goal", "autonomous_goal"]:
+                        self.logger.info("DEEP reasoning + complex_goal detected. Starting orchestration...")
+                        plan = self.orchestrator.generate_plan(user_input, self.advisor, reasoning_level.value)
+                        if plan:
+                            orch_result = self.orchestrator.execute_plan(plan, self)
+                            final_output = f"Autonomous Task Result: {orch_result['status'].upper()}\n"
+                            final_output += "\n".join([f"- {s.get('description', s.get('intent'))}: {'✅' if s.get('success') else '❌'}" for s in orch_result['audit_log']])
+                            return self._wrap_result(PipelineResult(
+                                success=orch_result['status'] == "success",
+                                output=final_output
+                            ), emotion_result, language)
+                        else:
+                            self.logger.warning("Orchestration failed to generate plan. Falling back.")
+                else:
+                    self.logger.info("LLM Advisor confirmed 'unknown' or failed.")
+
+            # 2b. Semantic Intent Layer (Phase 6A/6E) - Multi-Intent
+            # Only run if not already resolved by embedding router
             if not intents_to_execute and self.use_semantic_layer:
                 try:
                     sem_start = time.perf_counter()
@@ -400,11 +652,11 @@ class LyraPipeline:
                                  question = self.clarification_manager.create_clarification(intent_data)
                                  self.logger.info(f"Clarification requested: {question}")
                                  self.metrics.increment("clarification_triggers")
-                                 return PipelineResult(
+                                 return self._wrap_result(PipelineResult(
                                      success=False,
                                      output=self.formatter.format_warning(f"{question}"),
                                      error="Requires Clarification"
-                                 )
+                                 ), emotion_result, language)
                     
                     # If valid, convert to Commands
                     if semantic_result.get("intents"):
@@ -438,11 +690,60 @@ class LyraPipeline:
             
             # Verify we have something to do
             if not intents_to_execute:
-                return PipelineResult(
+                return self._wrap_result(PipelineResult(
                     success=False,
                     output=self.formatter.format_warning("Could not understand command"),
                     error="Unknown intent"
+                ), emotion_result, language)
+
+            # -------------------------------------------------------
+            # Phase F3: Parameter extraction + Feasibility validation
+            # Runs after intent classification, before execution.
+            # Only applies to embedding-routed commands (semantic/regex
+            # paths have their own validation and entity key formats).
+            # -------------------------------------------------------
+            for cmd in intents_to_execute:
+                if getattr(cmd, 'decision_source', '') != 'embedding':
+                    continue
+
+                # Enrich entities via regex extraction if still empty
+                if not cmd.entities:
+                    cmd.entities = self.semantic_engine.extract_parameters(
+                        cmd.intent, user_input
+                    )
+
+                # Feasibility check (required params + filesystem etc.)
+                feasibility = self.semantic_engine.validate_feasibility(
+                    cmd.intent, cmd.entities
                 )
+
+                if feasibility.requires_clarification:
+                    self.logger.info(
+                        f"Feasibility: clarification needed for "
+                        f"{cmd.intent}: {feasibility.clarification_question}"
+                    )
+                    self.metrics.increment("clarification_triggers")
+                    return self._wrap_result(PipelineResult(
+                        success=False,
+                        output=self.formatter.format_warning(
+                            feasibility.clarification_question
+                            or "More information is needed."
+                        ),
+                        error="Requires Clarification"
+                    ), emotion_result, language)
+
+                if not feasibility.valid:
+                    err_msg = "; ".join(feasibility.errors)
+                    self.logger.warning(
+                        f"Feasibility failed for {cmd.intent}: {err_msg}"
+                    )
+                    return self._wrap_result(PipelineResult(
+                        success=False,
+                        output=self.formatter.format_error(
+                            f"Cannot execute: {err_msg}"
+                        ),
+                        error="Feasibility Validation Failed"
+                    ), emotion_result, language)
             
             # 4. Execution Loop (Phase 6E)
             final_results = []
@@ -455,6 +756,11 @@ class LyraPipeline:
                 self.metrics.increment_decision_source(cmd.decision_source)
             
             for i, cmd in enumerate(intents_to_execute):
+                # Phase F6: Force confirmation if emotion/sarcasm indicates
+                if force_confirmation:
+                    cmd.requires_confirmation = True
+                    self.logger.info(f"Forcing confirmation for {cmd.intent} due to emotional state.")
+
                 # Safety Check: Mixing Write/Delete
                 if previous_intent_type:
                     # Generic mix check
@@ -470,18 +776,63 @@ class LyraPipeline:
                             # Empty path also bad if it implies current dir? Path usually required.
                             
                             if any(p in path_lower for p in unsafe_patterns) or path == "":
-                                 return PipelineResult(
+                                return self._wrap_result(PipelineResult(
                                     success=False,
                                     output="Safety Guard: Blocked ambiguous destructive chain (wildcard detected).",
                                     error="Safety Violation: Cannot delete wildcard/all after write."
-                                )
-                        
-                        return PipelineResult(
+                                ), emotion_result, language)
+                
+                        return self._wrap_result(PipelineResult(
                             success=False,
                             output="Safety Guard: Cannot mix write and delete operations in a single chain.",
                             error="Safety Violation"
-                        )
+                        ), emotion_result, language)
                 
+                # Phase F4: Execution Validation Gate
+                exec_request = self.gateway.validate_execution_request(
+                    intent=cmd.intent,
+                    params=cmd.entities,
+                    metadata={
+                        "source": getattr(cmd, "decision_source", "unknown"),
+                        "confirmed": auto_confirm,
+                        "semantic_valid": True,
+                    },
+                )
+
+                if not exec_request.allowed:
+                    if exec_request.requires_confirmation and not auto_confirm:
+                        return self._wrap_result(PipelineResult(
+                            success=False,
+                            output=self.formatter.format_warning(
+                                exec_request.reason
+                                or "Confirmation required for this action."
+                            ),
+                            error="Requires Confirmation",
+                        ), emotion_result, language)
+                    elif not exec_request.requires_confirmation:
+                        # Phase F10: Watchdog Safety Violation
+                        self.watchdog.record_safety_violation()
+                        return self._wrap_result(PipelineResult(
+                            success=False,
+                            output=self.formatter.format_error(
+                                exec_request.reason
+                                or "Execution blocked by safety gate."
+                            ),
+                            error="Execution Blocked",
+                        ), emotion_result, language)
+
+                # ── Phase X1: Policy Engine Validation ─────────────────────────
+                try:
+                    self.policy_engine.validate(cmd.intent, exec_request.risk_level)
+                except PolicyViolationException as pve:
+                    self.logger.warning(f"Policy Violation: {pve}")
+                    self.watchdog.record_safety_violation()
+                    return self._wrap_result(PipelineResult(
+                        success=False,
+                        output=self.formatter.format_error(str(pve)),
+                        error="Policy Violation"
+                    ), emotion_result, language)
+
                 # Execute individual command
                 step_result = self._execute_command(cmd, auto_confirm)
                 
@@ -492,35 +843,77 @@ class LyraPipeline:
                 
                 # Abort chain on failure/cancel
                 if not step_result.success:
-                    return PipelineResult(
+                    return self._wrap_result(PipelineResult(
                         success=False,
                         output="\n".join(final_results), # partial output included
                         error=step_result.error,
                         cancelled=step_result.cancelled
-                    )
+                    ), emotion_result, language)
                     
                 previous_intent_type = cmd.intent
             
             # Success
+            # Phase F10: Watchdog Success
+            for cmd in (intents_to_execute or []):
+                self.watchdog.record_execution_success(cmd.intent)
+
             self.command_history.add(user_input, success=True)
             
             total_duration = (time.perf_counter() - start_time) * 1000
             self.metrics.record_latency("total", total_duration)
             
-            return PipelineResult(
-                success=True,
-                output="\n".join(final_results)
-            )
-        
+            final_output = "\n".join(final_results)
+            return self._wrap_result(PipelineResult(success=True, output=final_output), emotion_result, language)
         except Exception as e:
+            # Phase F10: Watchdog Failure
+            self.watchdog.record_execution_failure()
             self.logger.error(f"Pipeline error: {e}")
             self.command_history.add(user_input, success=False)
-            return PipelineResult(
+            return self._wrap_result(PipelineResult(
                 success=False,
                 output=self.formatter.format_error_from_exception(e),
                 error=str(e)
-            )
+            ), emotion_result)
     
+    def _process_autonomous_step(self, cmd: Command) -> PipelineResult:
+        """
+        Internal helper for TaskOrchestrator to run a single step through 
+        Safety Gate -> Policy Engine -> Execution -> Watchdog.
+        Bypasses intent detection as intent is already planned.
+        """
+        # 1. Watchdog Command Start
+        self.watchdog.record_command()
+        self.watchdog.record_reasoning_level("deep")
+        
+        # 2. Safety Gate (Phase F4)
+        exec_request = self.gateway.validate_execution_request(
+            intent=cmd.intent,
+            params=cmd.entities,
+            metadata={"source": "orchestrator", "confirmed": True, "semantic_valid": True}
+        )
+        
+        if not exec_request.allowed:
+            self.watchdog.record_safety_violation()
+            return PipelineResult(success=False, output="Blocked by safety gate", error="Execution Blocked")
+            
+        # 3. Policy Engine (Phase X1)
+        try:
+            self.policy_engine.validate(cmd.intent, exec_request.risk_level)
+        except PolicyViolationException as pve:
+            self.watchdog.record_safety_violation()
+            return PipelineResult(success=False, output=str(pve), error="Policy Violation")
+
+        # 4. Execution
+        step_result = self._execute_command(cmd, auto_confirm=True)
+        
+        # 5. Watchdog Success/Failure
+        if step_result.success:
+            self.watchdog.record_execution_success(cmd.intent)
+        else:
+            self.watchdog.record_execution_failure()
+            
+        return step_result
+
     def simulate_command(self, user_input: str) -> PipelineResult:
         """
         Simulate command execution (dry-run)

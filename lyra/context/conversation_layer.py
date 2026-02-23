@@ -16,7 +16,8 @@ Adjustments applied:
 
 import re
 from dataclasses import dataclass
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Dict, Any
+from dataclasses import dataclass, field
 
 
 # ---------------------------------------------------------------------------
@@ -235,3 +236,23 @@ class ConversationLayer:
             confidence_modifier=confidence_modifier,
             indirect_phrasing=indirect_phrasing,
         )
+
+    def soften_response(self, response_text: str, emotion_result: Dict[str, Any]) -> str:
+        """
+        Adjusts response tone if the user is frustrated or angry.
+        """
+        if not emotion_result.get("requires_softening"):
+            return response_text
+            
+        emotion = emotion_result.get("emotion")
+        intensity = emotion_result.get("intensity", 0.0)
+        
+        # Simple prefix based on emotion
+        if emotion == "angry":
+            prefix = "I understand you're upset. " if intensity > 0.7 else "Apologies for the trouble. "
+        elif emotion == "frustrated":
+            prefix = "I see this is frustrating. Let's get this right. " if intensity > 0.5 else "I'll help you with that. "
+        else:
+            prefix = ""
+            
+        return prefix + response_text

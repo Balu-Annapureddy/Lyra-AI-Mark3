@@ -205,8 +205,10 @@ class ExecutionPlanner:
                 description=f"Launch application {app_name}"
             )
             steps.append(step)
-        
-        else:
+        elif command.intent == "autonomous_goal":
+            # Handled by TaskOrchestrator in Pipeline
+            self.logger.info("Autonomous goal detected - transfer to orchestrator.")
+            return None # Pipeline will handle the trigger
             # Unknown intent
             self.logger.warning(f"No plan mapping for intent: {command.intent}")
             return None

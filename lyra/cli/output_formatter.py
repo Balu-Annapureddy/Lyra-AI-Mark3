@@ -146,6 +146,10 @@ class OutputFormatter:
         """Format warning message"""
         return self._colorize(f"[WARN] {message}", Colors.YELLOW)
     
+    def format_error(self, message: str) -> str:
+        """Format error message"""
+        return self._colorize(f"[ERROR] {message}", Colors.RED)
+    
     def _format_risk(self, risk: float) -> str:
         """Format risk score with color"""
         if risk < 0.3:

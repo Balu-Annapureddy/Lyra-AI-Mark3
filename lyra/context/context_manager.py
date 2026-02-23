@@ -13,6 +13,7 @@ class ConversationContext:
     Only persists across a single CLI session (memory implementation).
     """
     last_intent: Optional[Dict[str, Any]] = None
+    last_emotion: Optional[Dict[str, Any]] = None
     
     def update_last_intent(self, intent_data: Dict[str, Any]):
         """

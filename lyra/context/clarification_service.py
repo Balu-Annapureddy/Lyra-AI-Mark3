@@ -61,7 +61,7 @@ class ClarificationManager:
                 question = "Which file would you like me to read?"
 
         if not question:
-            question = f"I understood you want to {intent_type}, but I need more details. Can you be more specific?"
+            question = "I'm not exactly sure what you'd like to do. Could you rephrase your request using keywords like 'create', 'launch', or 'read'?"
             
         self.last_question = question
         return question

@@ -27,6 +27,12 @@ class SessionMemory:
         self.last_successful_intent: Optional[str] = None
         self.last_parameters: Dict[str, Any] = {}
         self.timestamp: Optional[str] = None
+        # Phase F7: Language Tracking
+        self.consecutive_lang_hits: Dict[str, int] = {}
+        self.preferred_language: Optional[str] = "en"
+        self.last_detected_lang: Optional[str] = "en"
+        # Phase F9: Contextual Memory
+        self.interaction_history: List[Dict[str, Any]] = []
 
     def clear(self):
         """Explicitly clear memory"""
@@ -110,6 +116,35 @@ class SessionMemory:
                 self.last_opened_app = app
         
         elif intent in ["read_file", "delete_file"]:
-             path = entities.get("path") or entities.get("file_path")
-             if path:
-                 self.last_path = path
+            path = entities.get("path") or entities.get("file_path")
+            if path:
+                self.last_path = path
+
+    def update_language_preference(self, lang: str):
+        """
+        Track consecutive counts and set preferred_language if it hits 5.
+        """
+        if self.last_detected_lang == lang:
+            count = self.consecutive_lang_hits.get(lang, 0) + 1
+            self.consecutive_lang_hits[lang] = count
+        else:
+            self.consecutive_lang_hits = {lang: 1}
+            
+        self.last_detected_lang = lang
+        
+        if self.consecutive_lang_hits.get(lang, 0) >= 5:
+            self.preferred_language = lang
+
+    def add_interaction(self, role: str, content: str, **kwargs):
+        """Add a turn to the interaction history."""
+        entry = {"role": role, "content": content, "timestamp": datetime.now().isoformat()}
+        entry.update(kwargs)
+        self.interaction_history.append(entry)
+
+    def get_interaction_history(self) -> List[Dict[str, Any]]:
+        """Retrieve full history."""
+        return self.interaction_history
+
+    def set_interaction_history(self, history: List[Dict[str, Any]]):
+        """Update history (used after compression)."""
+        self.interaction_history = history
