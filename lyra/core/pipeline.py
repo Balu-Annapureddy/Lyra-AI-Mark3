@@ -59,9 +59,16 @@ class LyraPipeline:
         self.logger = get_logger(__name__)
         
         # Initialize components
+        # Phase 2: Memory Layer v1
+        from lyra.memory.memory_manager import MemoryManager
+        self.memory_manager = MemoryManager()
+        
+        # Phase F5/X4: Gemini API Escalation Advisor
+        self.advisor = LLMEscalationAdvisor()
+        
         self.intent_detector = IntentDetector()
         self.planner = ExecutionPlanner()
-        self.gateway = ExecutionGateway()
+        self.gateway = ExecutionGateway(memory_manager=self.memory_manager, advisor=self.advisor)
         self.formatter = OutputFormatter()
         
         # Phase 5B: History tracking & suggestions
@@ -113,7 +120,10 @@ class LyraPipeline:
         # Phase X2: Autonomous Orchestration
         self.orchestrator = TaskOrchestrator()
         
-        self.logger.info("Lyra pipeline initialized")
+        # Hardening v1.3: Lock Registry post-initialization
+        self.capability_registry.lock()
+        
+        self.logger.info("Lyra pipeline initialized and locked")
 
     def _register_default_capabilities(self):
         """Register the baseline capabilities of Lyra."""
@@ -232,10 +242,16 @@ class LyraPipeline:
             # 2. Check if confirmation needed
             confirmed = auto_confirm
             if plan.requires_confirmation and not auto_confirm:
+                # Aggregate risk explanations and rollback strategies for display
+                explanations = "\n".join([s.risk_explanation for s in plan.steps if s.risk_explanation])
+                rollbacks = "\n".join([s.rollback_strategy for s in plan.steps if s.rollback_strategy])
+                
                 confirmation_msg = self.formatter.format_confirmation(
                     action=f"{command.intent}: {command.raw_input}",
                     risk=plan.total_risk_score,
-                    details=f"{len(plan.steps)} step(s) will be executed"
+                    details=f"{len(plan.steps)} step(s) will be executed",
+                    explanation=explanations,
+                    rollback=rollbacks
                 )
                 print(confirmation_msg)
                 
@@ -571,31 +587,15 @@ class LyraPipeline:
                 should_escalate = True
                 
             if should_escalate and reasoning_level != ReasoningLevel.SHALLOW:
-                # ── Phase F9: Contextual Memory Compression ──────────────────
-                turn_count = len(self.session_memory.get_interaction_history())
-                if ContextCompressor.should_compress(turn_count):
-                    self.logger.info(f"Compression triggered ({turn_count} turns)...")
-                    # Phase F10: Watchdog Compression
-                    self.watchdog.record_compression()
-                    compressed_history = ContextCompressor.compress(
-                        self.session_memory.get_interaction_history(),
-                        model_advisor=self.advisor
-                    )
-                    self.session_memory.set_interaction_history(compressed_history)
-
-                self.logger.info(f"Escalating to LLM Advisor (Depth: {reasoning_level.value})...")
+                self.logger.info(f"Escalating to memory-enriched reasoning (Depth: {reasoning_level.value})...")
                 # Phase F10: Watchdog Escalation
                 self.watchdog.record_escalation()
-                # Pass current best guess if any
-                first_guess = intents_to_execute[0].__dict__ if intents_to_execute else None
-                advisor_report = self.advisor.analyze(
+                
+                # Phase 2.1: Use Gateway for the full memory-enriched reasoning flow
+                advisor_report = self.gateway.process_reasoning_flow(
                     user_input, 
-                    embedding_result=first_guess,
-                    context=self.context.get_last_intent(),
-                    language=language,
-                    reasoning_level=reasoning_level.value,
                     history=self.session_memory.get_interaction_history(),
-                    watchdog=self.watchdog
+                    trace_id=f"trace-{int(time.time())}"
                 )
                 
                 if advisor_report.get("intent") != "unknown":

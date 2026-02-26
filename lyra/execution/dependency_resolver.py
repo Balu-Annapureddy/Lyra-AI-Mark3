@@ -6,7 +6,7 @@ Detects circular dependencies
 
 from typing import List, Dict, Any, Optional, Set
 from dataclasses import dataclass
-from lyra.planning.execution_planner import ExecutionStep
+from lyra.planning.planning_schema import PlanStep
 from lyra.core.logger import get_logger
 
 
@@ -14,7 +14,7 @@ from lyra.core.logger import get_logger
 class DependencyNode:
     """Node in dependency graph"""
     step_id: str
-    step: ExecutionStep
+    step: PlanStep
     depends_on: List[str]
     dependents: List[str]
 
@@ -29,7 +29,7 @@ class DependencyResolver:
     def __init__(self):
         self.logger = get_logger(__name__)
     
-    def resolve_execution_order(self, steps: List[ExecutionStep]) -> List[ExecutionStep]:
+    def resolve_execution_order(self, steps: List[PlanStep]) -> List[PlanStep]:
         """
         Resolve execution order based on dependencies
         
@@ -57,7 +57,7 @@ class DependencyResolver:
         
         return ordered
     
-    def _build_graph(self, steps: List[ExecutionStep]) -> Dict[str, DependencyNode]:
+    def _build_graph(self, steps: List[PlanStep]) -> Dict[str, DependencyNode]:
         """Build dependency graph from steps"""
         graph = {}
         
@@ -117,7 +117,7 @@ class DependencyResolver:
         
         return None
     
-    def _topological_sort(self, graph: Dict[str, DependencyNode]) -> List[ExecutionStep]:
+    def _topological_sort(self, graph: Dict[str, DependencyNode]) -> List[PlanStep]:
         """
         Topological sort using Kahn's algorithm
         
@@ -153,24 +153,24 @@ class DependencyResolver:
         
         return result
     
-    def substitute_outputs(self, step: ExecutionStep, 
-                          context: Dict[str, Any]) -> ExecutionStep:
+    def substitute_outputs(self, step: PlanStep, 
+                          context: Dict[str, Any]) -> PlanStep:
         """
-        Substitute output references in step parameters
+        Substitute output references in step validated_input
         
         Args:
             step: Execution step
             context: Execution context with previous outputs
         
         Returns:
-            Step with substituted parameters
+            Step with substituted validated_input
         """
         # Create copy of step
         import copy
         step_copy = copy.deepcopy(step)
         
-        # Substitute parameters
-        for param_name, param_value in step_copy.parameters.items():
+        # Substitute validated_input
+        for param_name, param_value in step_copy.validated_input.items():
             if isinstance(param_value, str) and param_value.startswith("${") and param_value.endswith("}"):
                 # Extract reference (e.g., "${step1.output}")
                 ref = param_value[2:-1]
@@ -181,7 +181,7 @@ class DependencyResolver:
                     
                     # Look up in context
                     if ref_step_id in context and ref_field in context[ref_step_id]:
-                        step_copy.parameters[param_name] = context[ref_step_id][ref_field]
+                        step_copy.validated_input[param_name] = context[ref_step_id][ref_field]
                         self.logger.info(f"Substituted {param_name}: {param_value} -> {context[ref_step_id][ref_field]}")
                     else:
                         raise ValueError(f"Cannot resolve reference: {param_value}")

@@ -19,19 +19,19 @@ class CapabilityRegistry:
     def __init__(self):
         self._capabilities = {}  # name -> {allowed_intents, max_risk}
         self._intent_to_capability = {} # intent -> capability_name
+        self._locked = False
+
+    def lock(self):
+        """Lock the registry to prevent further modifications."""
+        self._locked = True
 
     def register_capability(self, name: str, allowed_intents: List[str], max_risk: str):
         """
         Register a new capability.
-        
-        Args:
-            name: Unique name of the capability.
-            allowed_intents: List of intents this capability governs.
-            max_risk: Maximum RiskLevel (string) allowed for this capability.
-        
-        Raises:
-            CapabilityRegistrationError: If an intent is already mapped.
         """
+        if self._locked:
+            raise RuntimeError("CapabilityRegistry is locked and cannot be modified.")
+
         for intent in allowed_intents:
             if intent in self._intent_to_capability:
                 existing = self._intent_to_capability[intent]

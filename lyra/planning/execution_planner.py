@@ -1,51 +1,13 @@
-"""
-Execution Planner - Phase 4A
-Decomposes complex requests into structured execution plans
-No direct OS access - plans only
-"""
-
 import uuid
 from typing import List, Dict, Any, Optional
-from dataclasses import dataclass, asdict
 from datetime import datetime
+from lyra.planning.planning_schema import ExecutionPlan, PlanStep
 from lyra.safety.adaptive_risk_scorer import AdaptiveRiskScorer
 from lyra.reasoning.confidence_tracker import ConfidenceTracker
 from lyra.core.logger import get_logger
 
 
-@dataclass
-class ExecutionStep:
-    """Single step in an execution plan"""
-    step_id: str
-    step_number: int
-    action_type: str = ""  # e.g., "file_read", "file_write", "command_run"
-    tool_required: str = ""  # Tool name from registry
-    parameters: Dict[str, Any] = None  # type: ignore[assignment]
-    risk_level: str = "LOW"  # LOW, MEDIUM, HIGH
-    requires_confirmation: bool = False
-    depends_on: List[str] = None  # type: ignore[assignment]  # Step IDs this depends on
-    reversible: bool = True
-    estimated_duration: float = 1.0  # seconds
-    description: str = ""  # Human-readable description
 
-    def __post_init__(self):
-        if self.parameters is None:
-            self.parameters = {}
-        if self.depends_on is None:
-            self.depends_on = []
-
-
-@dataclass
-class ExecutionPlan:
-    """Complete execution plan for a request"""
-    plan_id: str
-    steps: List[ExecutionStep]
-    total_risk_score: float = 0.0
-    requires_confirmation: bool = False
-    request: str = ""  # Original user request
-    created_at: str = ""  # ISO timestamp
-    estimated_total_duration: float = 0.0
-    confidence_score: float = 1.0  # Overall plan confidence
 
 
 class ExecutionPlanner:
@@ -83,22 +45,19 @@ class ExecutionPlanner:
         
         # Calculate overall metrics
         total_risk = self._calculate_total_risk(steps)
-        requires_confirmation = any(step.requires_confirmation for step in steps)
-        estimated_duration = sum(step.estimated_duration for step in steps)
+        requires_confirmation = any(step.step_risk in ["HIGH", "CRITICAL"] for step in steps)
+        estimated_duration = len(steps) * 1.0  # Heuristic for Phase 4A
         
         # Calculate plan confidence
         confidence = self._calculate_plan_confidence(steps, context)
         
         plan = ExecutionPlan(
-            plan_id=str(uuid.uuid4()),
-            request=request,
+            reasoning_id=str(uuid.uuid4()),
+            risk_level=total_risk,
             steps=steps,
-            total_risk_score=total_risk,
-            requires_confirmation=requires_confirmation,
-            created_at=datetime.now().isoformat(),
-            estimated_total_duration=estimated_duration,
-            confidence_score=confidence
+            requires_confirmation=requires_confirmation
         )
+        plan.freeze()
         
         self.logger.info(f"Plan created: {plan.plan_id} with {len(steps)} steps")
         return plan
@@ -130,17 +89,10 @@ class ExecutionPlanner:
                     path = match.group(1)
                     content = match.group(2)
             
-            step = ExecutionStep(
-                step_id=str(uuid.uuid4()),
-                step_number=1,
-                action_type="file_write",
-                tool_required="write_file",
-                parameters={"path": path, "content": content},
-                risk_level="MEDIUM",
-                requires_confirmation=True,
-                depends_on=[],
-                reversible=True,
-                estimated_duration=0.5,
+            step = PlanStep(
+                tool_name="write_file",
+                validated_input={"path": path, "content": content},
+                step_risk="MEDIUM",
                 description=f"Write to file {path}"
             )
             steps.append(step)
@@ -148,17 +100,10 @@ class ExecutionPlanner:
         elif command.intent == "read_file":
             path = command.entities.get("path", "")
             
-            step = ExecutionStep(
-                step_id=str(uuid.uuid4()),
-                step_number=1,
-                action_type="file_read",
-                tool_required="read_file",
-                parameters={"path": path},
-                risk_level="LOW",
-                requires_confirmation=False,
-                depends_on=[],
-                reversible=False,
-                estimated_duration=0.2,
+            step = PlanStep(
+                tool_name="read_file",
+                validated_input={"path": path},
+                step_risk="LOW",
                 description=f"Read file {path}"
             )
             steps.append(step)
@@ -173,17 +118,10 @@ class ExecutionPlanner:
                 else:
                     url = "https://" + url
             
-            step = ExecutionStep(
-                step_id=str(uuid.uuid4()),
-                step_number=1,
-                action_type="app_launcher",
-                tool_required="open_url",
-                parameters={"url": url},
-                risk_level="LOW",
-                requires_confirmation=False,
-                depends_on=[],
-                reversible=False,
-                estimated_duration=1.0,
+            step = PlanStep(
+                tool_name="open_url",
+                validated_input={"url": url},
+                step_risk="LOW",
                 description=f"Open URL {url}"
             )
             steps.append(step)
@@ -191,43 +129,68 @@ class ExecutionPlanner:
         elif command.intent == "launch_app":
             app_name = command.entities.get("app_name", "")
             
-            step = ExecutionStep(
-                step_id=str(uuid.uuid4()),
-                step_number=1,
-                action_type="app_launcher",
-                tool_required="launch_app",
-                parameters={"app_name": app_name},
-                risk_level="LOW",
-                requires_confirmation=False,
-                depends_on=[],
-                reversible=False,
-                estimated_duration=1.5,
+            step = PlanStep(
+                tool_name="launch_app",
+                validated_input={"app_name": app_name},
+                step_risk="LOW",
                 description=f"Launch application {app_name}"
             )
             steps.append(step)
-        elif command.intent == "autonomous_goal":
+        elif command.intent == "autonomous_goal" or command.intent == "complex_goal":
             # Handled by TaskOrchestrator in Pipeline
             self.logger.info("Autonomous goal detected - transfer to orchestrator.")
-            return None # Pipeline will handle the trigger
-            # Unknown intent
-            self.logger.warning(f"No plan mapping for intent: {command.intent}")
             return None
+        
+        elif command.intent == "delete_file":
+            path = command.entities.get("path", "")
+            step = PlanStep(
+                tool_name="delete_file",
+                validated_input={"path": path},
+                step_risk="HIGH",
+                description=f"Delete file {path}"
+            )
+            steps.append(step)
+            
+        elif command.intent == "install_software":
+            package = command.entities.get("package", "unknown")
+            step = PlanStep(
+                tool_name="install_software",
+                validated_input={"package": package},
+                step_risk="MEDIUM",
+                description=f"Install software: {package}"
+            )
+            steps.append(step)
+            
+        elif command.intent == "change_config":
+            setting = command.entities.get("setting", "unknown")
+            value = command.entities.get("value", "unknown")
+            step = PlanStep(
+                tool_name="change_config",
+                validated_input={"setting": setting, "value": value},
+                step_risk="MEDIUM",
+                description=f"Change configuration: {setting} to {value}"
+            )
+            steps.append(step)
+            
+        else:
+            # Unknown intent or no specific mapping
+            self.logger.warning(f"No specific plan mapping for intent: {command.intent}")
+            # Map it generically if possible or return None
+            if command.intent == "unknown":
+                return None
         
         # Calculate overall metrics
         total_risk = self._calculate_total_risk(steps)
-        requires_confirmation = any(step.requires_confirmation for step in steps)
-        estimated_duration = sum(step.estimated_duration for step in steps)
+        requires_confirmation = any(step.step_risk in ["HIGH", "CRITICAL"] for step in steps)
+        estimated_duration = len(steps) * 1.0
         
         plan = ExecutionPlan(
-            plan_id=str(uuid.uuid4()),
-            request=command.raw_input,
+            reasoning_id=str(uuid.uuid4()),
+            risk_level=total_risk,
             steps=steps,
-            total_risk_score=total_risk,
-            requires_confirmation=requires_confirmation,
-            created_at=datetime.now().isoformat(),
-            estimated_total_duration=estimated_duration,
-            confidence_score=command.confidence
+            requires_confirmation=requires_confirmation
         )
+        plan.freeze()
         
         self.logger.info(f"Plan created from command: {plan.plan_id}, intent={command.intent}")
         return plan
@@ -295,7 +258,7 @@ class ExecutionPlanner:
         
         return actions
     
-    def _create_step(self, action: Dict[str, Any], step_number: int) -> ExecutionStep:
+    def _create_step(self, action: Dict[str, Any], step_number: int) -> PlanStep:
         """
         Create execution step from action
         
@@ -304,7 +267,7 @@ class ExecutionPlanner:
             step_number: Step number
         
         Returns:
-            ExecutionStep
+            PlanStep
         """
         action_type = action["type"]
         tool_required = action["tool"]
@@ -330,17 +293,10 @@ class ExecutionPlanner:
         if action_type == "command_run":
             parameters["command"] = ""  # Will be filled by user
         
-        return ExecutionStep(
-            step_id=str(uuid.uuid4()),
-            step_number=step_number,
-            action_type=action_type,
-            tool_required=tool_required,
-            parameters=parameters,
-            risk_level=risk_level,
-            requires_confirmation=requires_confirmation,
-            depends_on=[],  # No dependencies in simple planner
-            reversible=reversible,
-            estimated_duration=estimated_duration,
+        return PlanStep(
+            tool_name=tool_required,
+            validated_input=parameters,
+            step_risk=risk_level,
             description=action["description"]
         )
     
@@ -368,54 +324,24 @@ class ExecutionPlanner:
         }
         return duration_map.get(action_type, 1.0)
     
-    def _calculate_total_risk(self, steps: List[ExecutionStep]) -> float:
-        """
-        Calculate total risk score for plan
-        Uses risk multiplication like workflow engine
-        """
+    def _calculate_total_risk(self, steps: List[PlanStep]) -> str:
+        """Determine overall risk level for the plan."""
         if not steps:
-            return 0.0
+            return "LOW"
         
-        # Map risk levels to scores
-        risk_map = {"LOW": 0.2, "MEDIUM": 0.5, "HIGH": 0.8}
-        
-        # Multiply risks (compound risk)
-        total_risk = 1.0
+        risk_hierarchy = {"LOW": 1, "MEDIUM": 2, "HIGH": 3, "CRITICAL": 4}
+        max_risk = "LOW"
         for step in steps:
-            step_risk = risk_map.get(step.risk_level, 0.5)
-            total_risk *= (1.0 - step_risk)
-        
-        # Invert to get final risk
-        final_risk = 1.0 - total_risk
-        
-        return min(1.0, final_risk)
+            if risk_hierarchy[step.step_risk] > risk_hierarchy[max_risk]:
+                max_risk = step.step_risk
+        return max_risk
     
-    def _calculate_plan_confidence(self, steps: List[ExecutionStep], 
+    def _calculate_plan_confidence(self, steps: List[PlanStep], 
                                    context: Dict[str, Any]) -> float:
         """Calculate overall plan confidence"""
         if not steps:
             return 0.0
-        
-        # Simple confidence based on:
-        # - Number of steps (fewer = higher confidence)
-        # - Risk levels (lower = higher confidence)
-        # - Reversibility (more reversible = higher confidence)
-        
-        step_count_factor = max(0.5, 1.0 - (len(steps) * 0.1))
-        
-        reversible_count = sum(1 for step in steps if step.reversible)
-        reversibility_factor = reversible_count / len(steps) if steps else 0.0
-        
-        high_risk_count = sum(1 for step in steps if step.risk_level == "HIGH")
-        risk_factor = max(0.3, 1.0 - (high_risk_count * 0.2))
-        
-        confidence = (
-            0.4 * step_count_factor +
-            0.3 * reversibility_factor +
-            0.3 * risk_factor
-        )
-        
-        return min(1.0, max(0.0, confidence))
+        return 0.9 # Hardened v1.3 simplified for rule-based path
     
     def validate_plan(self, plan: ExecutionPlan) -> bool:
         """
@@ -447,11 +373,7 @@ class ExecutionPlanner:
         """Convert plan to dictionary for logging"""
         return {
             "plan_id": plan.plan_id,
-            "request": plan.request,
-            "steps": [asdict(step) for step in plan.steps],
-            "total_risk_score": plan.total_risk_score,
-            "requires_confirmation": plan.requires_confirmation,
-            "created_at": plan.created_at,
-            "estimated_total_duration": plan.estimated_total_duration,
-            "confidence_score": plan.confidence_score
+            "steps": [str(step) for step in plan.steps],
+            "risk_level": plan.risk_level,
+            "requires_confirmation": plan.requires_confirmation
         }

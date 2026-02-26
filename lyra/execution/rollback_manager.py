@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
-from lyra.planning.execution_planner import ExecutionStep
+from lyra.planning.planning_schema import PlanStep
 from lyra.core.logger import get_logger
 
 
@@ -36,7 +36,7 @@ class RollbackManager:
         self.snapshot_dir = Path(__file__).parent.parent.parent / "data" / "snapshots"
         self.snapshot_dir.mkdir(parents=True, exist_ok=True)
     
-    def create_snapshot(self, step: ExecutionStep) -> Optional[RollbackSnapshot]:
+    def create_snapshot(self, step: PlanStep) -> Optional[RollbackSnapshot]:
         """
         Create snapshot for reversible step
         Only if tool is reversible
@@ -55,20 +55,20 @@ class RollbackManager:
         # Create snapshot based on tool
         snapshot_data = None
         
-        if step.tool_required == "write_file":
+        if step.tool_name == "write_file":
             snapshot_data = self._snapshot_write_file(step)
-        elif step.tool_required == "launch_app":
+        elif step.tool_name == "launch_app":
             snapshot_data = self._snapshot_launch_app(step)
         # Add more tools as needed
         
         if snapshot_data is None:
-            self.logger.debug(f"No snapshot handler for {step.tool_required}")
+            self.logger.debug(f"No snapshot handler for {step.tool_name}")
             return None
         
         # Create snapshot
         snapshot = RollbackSnapshot(
             step_id=step.step_id,
-            tool_name=step.tool_required,
+            tool_name=step.tool_name,
             snapshot_data=snapshot_data,
             timestamp=datetime.now().isoformat()
         )
@@ -81,9 +81,9 @@ class RollbackManager:
         
         return snapshot
     
-    def _snapshot_write_file(self, step: ExecutionStep) -> Dict[str, Any]:
+    def _snapshot_write_file(self, step: PlanStep) -> Dict[str, Any]:
         """Create snapshot for write_file operation"""
-        path = step.parameters.get("path")
+        path = step.validated_input.get("path")
         if not path:
             return {}
         
@@ -114,12 +114,12 @@ class RollbackManager:
                 "old_content": None
             }
     
-    def _snapshot_launch_app(self, step: ExecutionStep) -> Dict[str, Any]:
+    def _snapshot_launch_app(self, step: PlanStep) -> Dict[str, Any]:
         """Create snapshot for launch_app operation"""
         # For now, just record app name
         # Future: store process ID for kill capability
         return {
-            "app_name": step.parameters.get("app_name"),
+            "app_name": step.validated_input.get("app_name"),
             "process_id": None  # Future enhancement
         }
     

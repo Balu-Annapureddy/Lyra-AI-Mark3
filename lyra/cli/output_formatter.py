@@ -93,7 +93,8 @@ class OutputFormatter:
         
         return "\n".join(lines)
     
-    def format_confirmation(self, action: str, risk: float, details: str = "") -> str:
+    def format_confirmation(self, action: str, risk: float, details: str = "", 
+                           explanation: str = "", rollback: str = "") -> str:
         """
         Format confirmation request with risk level (Phase 5B)
         
@@ -101,6 +102,8 @@ class OutputFormatter:
             action: Action description
             risk: Risk score (0.0-1.0)
             details: Additional details
+            explanation: Safety risk explanation (Phase 1)
+            rollback: Rollback strategy details (Phase 1)
         
         Returns:
             Formatted confirmation message
@@ -126,7 +129,14 @@ class OutputFormatter:
             lines.append(f"{Colors.DIM}{details}{Colors.RESET}")
         
         lines.append(f"\n{Colors.BOLD}Risk Level:{Colors.RESET} {risk_label} ({risk:.0%})")
-        lines.append(f"{Colors.DIM}{'='*50}{Colors.RESET}")
+        
+        if explanation:
+            lines.append(f"\n{Colors.BOLD}Risk Explanation:{Colors.RESET}\n  {explanation}")
+            
+        if rollback:
+            lines.append(f"\n{Colors.BOLD}Rollback Strategy:{Colors.RESET}\n  {rollback}")
+            
+        lines.append(f"\n{Colors.DIM}{'='*50}{Colors.RESET}")
         
         return "\n".join(lines)
     

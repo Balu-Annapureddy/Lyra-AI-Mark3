@@ -59,14 +59,19 @@ embedding:
   device: "cpu"
 
 llm:
-  model_path: "models/qwen2.5-3b-q4.gguf"
+  provider_priority: ["ollama", "gemini"]
+  ollama:
+    model: "qwen2.5:3b"
+    timeout: 8
+  gemini:
+    model: "gemini-1.5-flash"
   lazy_load: true
   max_tokens: 512
-  temperature: 0.1
+  temperature: 0.2
   structured_output_only: true
   unload_after_seconds: 180
   allow_execution: false
-  memory_guard_min_free_gb: 0.5
+  memory_guard_min_free_gb: 0.8  # 10% of 8GB
 
 emotion:
   enabled: true

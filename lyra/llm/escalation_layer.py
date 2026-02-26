@@ -9,156 +9,110 @@ from lyra.execution.execution_gateway import SUPPORTED_INTENTS
 
 logger = get_logger(__name__)
 
+from lyra.llm.provider_interface import ReasoningRequest
+from lyra.llm.router import ReasoningRouter
+from lyra.llm.providers.ollama_adapter import OllamaAdapter
+from lyra.llm.providers.gemini_adapter import GeminiAdapter
+
+logger = get_logger(__name__)
+
 class LLMEscalationAdvisor:
     """
-    Advisor module that uses Gemini API to reason about user input.
-    Provides structured reasoning and intent recommendations for ambiguous inputs.
+    Advisor module that uses a ReasoningRouter to get structured reasoning.
+    Phase 1 Stabilization: Local-first delegated reasoning.
+    Hardened v1.3: Focused on business logic mapping; relies on Router for safety/schema.
     """
     
-    SYSTEM_PROMPT = f"""You are an advisory reasoning module for Lyra AI. 
-Your goal is to interpret ambiguous user commands and recommend the most likely intent and parameters.
-
-SUPPORTED INTENTS:
-{', '.join(SUPPORTED_INTENTS)}
-
+    SYSTEM_PROMPT = f"""You are Lyra AI Advisor. Recommend the most likely intent and parameters.
+SUPPORTED INTENTS: {', '.join(SUPPORTED_INTENTS)}
 RULES:
-1. ONLY return valid JSON. No conversational filler.
-2. DO NOT invent new intents. Use 'unknown' if no supported intent fits.
-3. You are an advisor, NOT an executor. Do not suggest shell scripts or direct code execution.
-4. If the user input is a statement without an action, use intent: 'conversation'.
-
-OUTPUT SCHEMA (JSON):
-{{
-    "intent": "string",
-    "confidence": float (0.0 to 1.0),
-    "needs_confirmation": boolean,
-    "emotion": "string or null",
-    "clarification_question": "string or null",
-    "reasoning": "brief explanation of your choice"
-}}
+1. ONLY return valid JSON.
+2. DO NOT invent new intents.
+3. If no action, use 'conversation'.
 """
 
     def __init__(self):
         self._config = Config()
-        self._api_key = self._config.get("llm.api_key", os.environ.get("GEMINI_API_KEY"))
-        self._model_name = self._config.get("llm.model_name", "gemini-1.5-flash")
-        self._gen_model = None
-        self._initialized = False
-        logger.info("LLMEscalationAdvisor (Gemini API) initialized")
-
-    def _initialize_gemini(self) -> bool:
-        """Initialize the Gemini generative model."""
-        if self._initialized:
-            return True
-            
-        if not self._api_key:
-            logger.error("[LLM-ADVISOR] Gemini API key not found in config or environment.")
-            return False
-            
-        try:
-            import google.generativeai as genai
-            genai.configure(api_key=self._api_key)
-            self._gen_model = genai.GenerativeModel(
-                model_name=self._model_name,
-                system_instruction=self.SYSTEM_PROMPT
-            )
-            self._initialized = True
-            return True
-        except ImportError:
-            logger.error("[LLM-ADVISOR] google-generativeai package missing. Run 'pip install google-generativeai'.")
-            return False
-        except Exception as e:
-            logger.error(f"[LLM-ADVISOR] Failed to initialize Gemini API: {e}")
-            return False
+        
+        # Initialize providers based on config if needed, here we use defaults
+        ollama = OllamaAdapter(
+            model_name=self._config.get("llm.ollama.model", "qwen2.5:3b")
+        )
+        gemini = GeminiAdapter(
+            model_name=self._config.get("llm.gemini.model", "gemini-1.5-flash")
+        )
+        
+        self.router = ReasoningRouter(providers=[ollama, gemini])
+        logger.info("LLMEscalationAdvisor with Hardened ReasoningRouter initialized")
 
     def analyze(self, user_input: str, embedding_result: Optional[Dict[str, Any]] = None, 
                 context: Optional[Dict[str, Any]] = None, language: str = "en", 
                 reasoning_level: str = "standard", history: Optional[List[Dict[str, Any]]] = None, 
                 watchdog: Optional[Any] = None) -> Dict[str, Any]:
         """
-        Analyze user input and return a structured advisory result using Gemini API.
+        Analyze user input via the ReasoningRouter with Hardening v1.3.
         """
+        from lyra.llm.provider_interface import ReasoningMode, SchemaRegistry
+        
         if reasoning_level == "shallow":
-             return {"intent": "unknown", "confidence": 0.0, "needs_confirmation": False, "reasoning": "Reasoning skipped"}
+             return {"intent": "unknown", "confidence": 0.0, "reasoning": "Reasoning skipped"}
 
-        if not self._initialize_gemini():
-            return self._get_fallback_result("Cognitive engines are temporarily unavailable due to initialization failure.")
+        # Construct request following Hardened Spec v1.3
+        prompt = self._build_prompt(user_input, language, history, reasoning_level)
+        
+        # Determine Mode
+        mode = ReasoningMode.INTENT_CLASSIFICATION if reasoning_level != "deep" else ReasoningMode.PLAN_GENERATION
+        
+        # Fetch frozen schema from central registry (Integrity Locked v1.3)
+        schema = SchemaRegistry.get_schema(mode)
+        
+        request = ReasoningRequest(
+            prompt=prompt,
+            schema=schema,
+            mode=mode,
+            temperature=0.2 if reasoning_level == "standard" else 0.4,
+            max_tokens=350,
+            history=history or []
+        )
 
-        prompt = f"User Input: '{user_input}'\n"
+        # Router performs selection, circuit breaking, timeout, schema validation, and confidence gating
+        result = self.router.route_request(request)
+        
+        if result.get("error"):
+            if watchdog:
+                watchdog.record_malformed_llm_output()
+            return self._get_fallback_result(result.get("reason", "Reasoning failure"))
+
+        # Double-validate intent whitelist for safety (final sanity check)
+        if result.get("intent") not in SUPPORTED_INTENTS:
+            logger.warning(f"[LLM-ADVISOR] Unsupported intent: {result.get('intent')}. Forcing 'unknown'.")
+            result["intent"] = "unknown"
+            result["confidence"] = 0.0
+            
+        return result
+
+    def _build_prompt(self, user_input: str, language: str, history: Optional[List[Dict[str, Any]]], level: str) -> str:
+        prompt = self.SYSTEM_PROMPT + f"\nUser Input: '{user_input}'\n"
         if language != "en":
             prompt += f"System Language: {language}\n"
         
         if history:
-            prompt += "\nInteraction History:\n"
-            for turn in history:
-                role = turn.get("role", "user")
-                content = turn.get("content", "")
-                prompt += f"- {role.upper()}: {content}\n"
+            prompt += "\nHistory:\n"
+            for turn in history[-5:]: # Limit to last 5 for context
+                prompt += f"- {turn.get('role', 'user')}: {turn.get('content')}\n"
         
-        if reasoning_level == "deep":
-            prompt += "\nReasoning Level: DEEP. Break down the problem step-by-step.\n"
-        elif reasoning_level == "standard":
-            prompt += "\nReasoning Level: STANDARD.\n"
+        if level == "deep":
+            prompt += "\nReasoning: DEEP. Break down step-by-step.\n"
             
-        prompt += "\nRespond ONLY with the validated JSON object matching the schema."
-
-        # Attempt generation with retry logic
-        max_retries = 2
-        for attempt in range(max_retries):
-            try:
-                response = self._gen_model.generate_content(
-                    prompt,
-                    generation_config={"temperature": 0.1, "response_mime_type": "application/json"}
-                )
-                
-                if not response or not response.text:
-                    raise ValueError("Empty response from Gemini API")
-                
-                result = self._parse_and_validate_json(response.text)
-                if result:
-                    # Double-validate intent whitelist
-                    if result.get("intent") not in SUPPORTED_INTENTS:
-                        logger.warning(f"[LLM-ADVISOR] Unsupported intent: {result.get('intent')}. Forcing 'unknown'.")
-                        result["intent"] = "unknown"
-                        result["confidence"] = 0.0
-                    return result
-                
-                logger.warning(f"[LLM-ADVISOR] JSON parse failed on attempt {attempt + 1}")
-                time.sleep(1) # Brief backoff
-                
-            except Exception as e:
-                logger.error(f"[LLM-ADVISOR] Gemini API call failed on attempt {attempt + 1}: {e}")
-                time.sleep(1)
-
-        if watchdog:
-            watchdog.record_malformed_llm_output()
-        return self._get_fallback_result("Cognitive engines are temporarily unavailable due to system resource limits or connectivity.")
-
-    def _parse_and_validate_json(self, text: str) -> Optional[Dict[str, Any]]:
-        """Attempt to parse JSON and validate basic structure."""
-        try:
-            text = text.strip()
-            if text.startswith("```json"):
-                text = text[7:]
-            if text.endswith("```"):
-                text = text[:-3]
-            data = json.loads(text.strip())
-            
-            required_keys = ["intent", "confidence", "needs_confirmation", "reasoning"]
-            if all(k in data for k in required_keys):
-                return data
-            return None
-        except json.JSONDecodeError:
-            return None
+        prompt += "\nRespond ONLY with JSON matching the schema."
+        return prompt
 
     def _get_fallback_result(self, reason: str) -> Dict[str, Any]:
-        """Safe fallback response when API fails."""
+        """Safe fallback response when routing fails."""
         return {
             "intent": "unknown",
             "confidence": 0.0,
             "needs_confirmation": False,
-            "clarification_question": None,
-            "reasoning": reason,
-            "emotion": None,
+            "reasoning": f"Reasoning failure: {reason}",
             "error": True
         }

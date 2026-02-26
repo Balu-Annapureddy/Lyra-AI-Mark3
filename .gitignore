@@ -31,7 +31,7 @@ PIPFILE.lock
 venv/
 ENV/
 env/
-.venv
+.venv/
 
 # IDEs
 .vscode/
@@ -44,18 +44,17 @@ env/
 .DS_Store
 Thumbs.db
 
-# Lyra-specific
+# Lyra runtime data (generated at runtime)
 data/*.db
 data/*.sqlite
-data/logs/*.log
-config/user_config.yaml
-
-# Runtime-generated data (not source code)
-data/execution_plans/
+data/*.jsonl
+data/*.json
+data/logs/
 data/execution_logs/
+data/execution_plans/
 data/snapshots/
 data/workflows/
-data/behavioral_memory.db
+config/user_config.yaml
 
 # Temp test output files
 *_out.txt
@@ -65,16 +64,11 @@ full_suite_out.txt
 untitled.txt
 valid_name.txt
 git_status.txt
-lyra/cli/cli_display_methods.txt
 
 # Temporary files
 *.tmp
 *.bak
 *.cache
-
-# Test output files
-*_out.txt
-untitled.txt
 
 # Test coverage
 .coverage

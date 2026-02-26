@@ -29,7 +29,7 @@ class Command:
     
     # Core identification
     command_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+    created_at: int = field(default_factory=lambda: int(datetime.now().timestamp()))
     
     # User input
     raw_input: str = ""
@@ -65,7 +65,7 @@ class Command:
         """Convert command to dictionary for logging/storage"""
         return {
             "command_id": self.command_id,
-            "timestamp": self.timestamp,
+            "created_at": self.created_at,
             "raw_input": self.raw_input,
             "intent": self.intent,
             "entities": self.entities,
@@ -87,7 +87,7 @@ class Command:
         """Create command from dictionary"""
         cmd = cls()
         cmd.command_id = data.get("command_id", cmd.command_id)
-        cmd.timestamp = data.get("timestamp", cmd.timestamp)
+        cmd.created_at = data.get("created_at", int(datetime.now().timestamp()))
         cmd.raw_input = data.get("raw_input", "")
         cmd.intent = data.get("intent", "")
         cmd.entities = data.get("entities", {})

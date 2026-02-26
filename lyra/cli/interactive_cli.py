@@ -111,9 +111,9 @@ class InteractiveCLI:
     def _print_banner(self):
         """Print welcome banner"""
         banner = f"""
-{self._colorize('╔═══════════════════════════════════════╗', Colors.CYAN)}
-{self._colorize('║', Colors.CYAN)}  {self._colorize('Lyra AI v3.0', Colors.BOLD)}  {self._colorize('- Interactive Mode', Colors.CYAN)}  {self._colorize('║', Colors.CYAN)}
-{self._colorize('╚═══════════════════════════════════════╝', Colors.CYAN)}
+{self._colorize('+=======================================+', Colors.CYAN)}
+{self._colorize('|', Colors.CYAN)}  {self._colorize('Lyra AI v3.0', Colors.BOLD)}  {self._colorize('- Interactive Mode', Colors.CYAN)}  {self._colorize('|', Colors.CYAN)}
+{self._colorize('+=======================================+', Colors.CYAN)}
 """
         print(banner)
         print(f"\n{Colors.BOLD}Commands:{Colors.RESET}")

@@ -7,6 +7,7 @@
       "risk_category": "LOW",
       "permission_level_required": "LOW",
       "reversible": true,
+      "idempotent": true,
       "parameters": [
         {
           "name": "path",
@@ -17,9 +18,30 @@
           "description": "Path to file"
         }
       ],
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          }
+        }
+      },
       "requires_confirmation": false,
       "max_execution_time": 5.0,
-      "enabled": true
+      "enabled": true,
+      "version": "1.0.0",
+      "sha256": "082713f41a04355a09dfb2b66c42cf84bfcb864c8c5e5039e74e13e935485789"
     },
     {
       "name": "write_file",
@@ -28,6 +50,7 @@
       "risk_category": "MEDIUM",
       "permission_level_required": "MEDIUM",
       "reversible": false,
+      "idempotent": true,
       "parameters": [
         {
           "name": "path",
@@ -46,9 +69,34 @@
           "description": "Content to write"
         }
       ],
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        }
+      },
       "requires_confirmation": true,
       "max_execution_time": 10.0,
-      "enabled": true
+      "enabled": true,
+      "version": "1.0.0",
+      "sha256": "352a50c6d8a17037c701828ef71bc9e786bfd75c9ece775a79a395b0d20659a4"
     },
     {
       "name": "delete_file",
@@ -57,6 +105,7 @@
       "risk_category": "HIGH",
       "permission_level_required": "HIGH",
       "reversible": false,
+      "idempotent": false,
       "parameters": [
         {
           "name": "path",
@@ -67,9 +116,30 @@
           "description": "Path to file"
         }
       ],
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        }
+      },
       "requires_confirmation": true,
       "max_execution_time": 5.0,
-      "enabled": false
+      "enabled": false,
+      "version": "1.0.0",
+      "sha256": "966282ed51789da6560b06d2243eb8f9ca1af786033cae3f3129094c03986a4e"
     },
     {
       "name": "run_command",
@@ -78,6 +148,7 @@
       "risk_category": "HIGH",
       "permission_level_required": "HIGH",
       "reversible": false,
+      "idempotent": false,
       "parameters": [
         {
           "name": "command",
@@ -88,9 +159,36 @@
           "description": "Command to execute"
         }
       ],
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "command"
+        ]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "stdout": {
+            "type": "string"
+          },
+          "stderr": {
+            "type": "string"
+          },
+          "exit_code": {
+            "type": "integer"
+          }
+        }
+      },
       "requires_confirmation": true,
       "max_execution_time": 30.0,
-      "enabled": false
+      "enabled": false,
+      "version": "1.0.0",
+      "sha256": "d680af2930302dd26e3ec58f88599f15138c6367601f02b02d5e8e186c1e04fd"
     },
     {
       "name": "get_system_info",
@@ -99,22 +197,28 @@
       "risk_category": "LOW",
       "permission_level_required": "LOW",
       "reversible": true,
+      "idempotent": true,
       "parameters": [],
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "os": {
+            "type": "string"
+          },
+          "hostname": {
+            "type": "string"
+          }
+        }
+      },
       "requires_confirmation": false,
       "max_execution_time": 2.0,
-      "enabled": true
-    },
-    {
-      "name": "test_tool",
-      "description": "Test tool",
-      "action_type": "test",
-      "risk_category": "LOW",
-      "permission_level_required": "LOW",
-      "reversible": true,
-      "parameters": [],
-      "requires_confirmation": false,
-      "max_execution_time": 1.0,
-      "enabled": true
+      "enabled": true,
+      "version": "1.0.0",
+      "sha256": "154ed03153394b300a50a96cc7cafa762cfaf38e98d094e664fb23787918af48"
     },
     {
       "name": "open_url",
@@ -123,6 +227,7 @@
       "risk_category": "LOW",
       "permission_level_required": "LOW",
       "reversible": true,
+      "idempotent": true,
       "parameters": [
         {
           "name": "url",
@@ -133,9 +238,30 @@
           "description": "URL to open"
         }
       ],
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        }
+      },
       "requires_confirmation": false,
       "max_execution_time": 3.0,
-      "enabled": true
+      "enabled": true,
+      "version": "1.0.0",
+      "sha256": "e26627fe490b58d2fde676022ed410f8771b29f0999b6a98208a3505186b37aa"
     },
     {
       "name": "launch_app",
@@ -144,6 +270,7 @@
       "risk_category": "MEDIUM",
       "permission_level_required": "MEDIUM",
       "reversible": true,
+      "idempotent": true,
       "parameters": [
         {
           "name": "app_name",
@@ -154,9 +281,134 @@
           "description": "Application name from allowlist"
         }
       ],
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "app_name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "app_name"
+        ]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "pid": {
+            "type": "integer"
+          }
+        }
+      },
       "requires_confirmation": true,
       "max_execution_time": 5.0,
-      "enabled": true
+      "enabled": true,
+      "version": "1.0.0",
+      "sha256": "5fcfae8faa9e27305a40523b2262e1f8c8f19aa83b35ec58b8da853506c689c6"
+    },
+    {
+      "name": "install_software",
+      "description": "Install new software or packages",
+      "action_type": "system_modify",
+      "risk_category": "MEDIUM",
+      "permission_level_required": "MEDIUM",
+      "reversible": false,
+      "idempotent": false,
+      "parameters": [
+        {
+          "name": "package",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "validation_pattern": "^[a-zA-Z0-9_\\-\\.]+$",
+          "description": "Name of package to install"
+        }
+      ],
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "package": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "package"
+        ]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "requires_confirmation": true,
+      "max_execution_time": 60.0,
+      "enabled": true,
+      "version": "1.0.0",
+      "sha256": "f560db1b580593773427c35a690e09f1cd70613fa40a866ed372e31afddd26a2"
+    },
+    {
+      "name": "change_config",
+      "description": "Change system or application configuration",
+      "action_type": "config_modify",
+      "risk_category": "MEDIUM",
+      "permission_level_required": "MEDIUM",
+      "reversible": true,
+      "idempotent": true,
+      "parameters": [
+        {
+          "name": "setting",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "validation_pattern": "^[a-zA-Z0-9_\\-\\.]+$",
+          "description": "Setting name"
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "validation_pattern": null,
+          "description": "New value for setting"
+        }
+      ],
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "setting": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "setting",
+          "value"
+        ]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "previous_value": {
+            "type": "string"
+          }
+        }
+      },
+      "requires_confirmation": true,
+      "max_execution_time": 5.0,
+      "enabled": true,
+      "version": "1.0.0",
+      "sha256": "00b948c10eb12878995448b34f0190a3af823b4ec7f085131bef07d90f1b957f"
     }
   ]
 }

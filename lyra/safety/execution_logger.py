@@ -20,7 +20,7 @@ class ExecutionRecord:
     record_id: str
     command_id: str
     command: Dict[str, Any]
-    timestamp: str
+    created_at: int
     before_state: Dict[str, Any]
     after_state: Dict[str, Any]
     success: bool
@@ -66,7 +66,7 @@ class ExecutionLogger:
             Before state snapshot
         """
         before_state = {
-            "timestamp": datetime.now().isoformat(),
+            "created_at": int(datetime.now().timestamp()),
             "command_id": command.command_id,
             "intent": command.intent,
             "context": context or {}
@@ -98,7 +98,7 @@ class ExecutionLogger:
             After state snapshot
         """
         after_state = {
-            "timestamp": datetime.now().isoformat(),
+            "created_at": int(datetime.now().timestamp()),
             "command_id": command.command_id,
             "result": str(result) if result else None,
             "status": command.status,
@@ -187,7 +187,7 @@ class ExecutionLogger:
             record_id=str(uuid.uuid4()),
             command_id=command.command_id,
             command=command.to_dict(),
-            timestamp=datetime.now().isoformat(),
+            created_at=int(datetime.now().timestamp()),
             before_state=before_state,
             after_state=after_state,
             success=success,
