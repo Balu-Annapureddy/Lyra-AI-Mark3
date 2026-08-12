@@ -1,205 +1,198 @@
 # Lyra — Local-First Personal AI Operating System
 
-> **Status: 🟡 Active Development / Experimental**
+> **Status**: 🟡 Active Development / Experimental  
+> **Target Identity**: Lyra  
+> **License**: MIT License  
 
-Lyra is my long-running personal AI systems project: a **local-first, modular assistant** designed to understand user intent, reason about tasks, enforce safety policies, plan multi-step work, and execute approved actions through controlled tools.
-
-This repository is **not presented as a finished product**. Lyra is being developed incrementally, and several subsystems remain experimental or incomplete. The project has also been designed around limited local hardware, so resource management and graceful degradation are first-class engineering concerns.
-
-## Why Lyra?
-
-Most personal-assistant projects stop at conversational responses. Lyra explores the harder systems problem:
-
-**How can an AI assistant move from an instruction to a safe, explainable, controlled action?**
-
-The project therefore focuses on the pipeline around an AI model rather than treating an LLM as the entire application.
-
-## Current Architecture
-
-```text
-User Input
-    │
-    ▼
-┌──────────────────────┐
-│   Lyra Pipeline      │
-│ normalization/session │
-└──────────┬───────────┘
-           ▼
-┌──────────────────────┐
-│ Semantic / Intent    │
-│ Routing & Extraction │
-└──────────┬───────────┘
-           ▼
-┌──────────────────────┐
-│ Reasoning / Planning │
-│   & Context          │
-└──────────┬───────────┘
-           ▼
-┌──────────────────────┐
-│ Policy & Safety      │
-│     Gates            │
-└──────────┬───────────┘
-           ▼
-┌──────────────────────┐
-│ Execution Planner /  │
-│   Task Orchestrator  │
-└──────────┬───────────┘
-           ▼
-┌──────────────────────┐
-│ Controlled Tool      │
-│      Registry        │
-└──────────┬───────────┘
-           ▼
-      Approved Action
-```
-
-The current implementation includes dedicated modules for capabilities, context, core orchestration, execution, LLM management, memory, planning, policy, reasoning, safety, semantic routing, and metrics.
-
-See [`PROJECT_ARCHITECTURE.md`](PROJECT_ARCHITECTURE.md) for the current technical architecture and data flow.
-
-## Key Engineering Ideas
-
-### Local-first execution
-
-Lyra is designed to prefer local computation and only use external services when required. Heavy cognitive components are loaded lazily and resource-aware behavior is used to avoid unnecessarily exhausting system memory.
-
-### Semantic intent routing
-
-The current architecture uses an embedding-based intent router (`all-MiniLM-L6-v2`) for lightweight semantic classification, with resource checks before loading heavier components.
-
-### Safety before execution
-
-Actions do not go directly from natural-language input to arbitrary command execution. Lyra uses multiple governance layers, including capability/policy checks and an execution gateway that evaluates risk and can require human confirmation for dangerous operations.
-
-### Multi-step planning
-
-Complex goals can be decomposed into individual steps by the planning/orchestration layer. Each step is subject to safety verification rather than treating an entire generated plan as automatically trusted.
-
-### Resource-aware AI
-
-Lyra follows a **single-heavy-model** approach where practical: embedding and LLM components are managed to reduce memory pressure on constrained systems, with idle unloading and resource checks.
-
-## Current Components
-
-| Component | Purpose |
-|---|---|
-| `lyra/core` | Central pipeline and system coordination |
-| `lyra/semantic` | Intent routing, parameter extraction and semantic validation |
-| `lyra/reasoning` | Reasoning and decision support |
-| `lyra/planning` | Task and execution planning |
-| `lyra/orchestration` | Multi-step task execution |
-| `lyra/policy` | Capability and policy enforcement |
-| `lyra/safety` | Safety and risk controls |
-| `lyra/execution` | Controlled execution gateway and tools |
-| `lyra/capabilities` | Available assistant capabilities |
-| `lyra/memory` | Persistent/session memory components |
-| `lyra/context` | Context handling |
-| `lyra/llm` | Local/LLM integration and resource management |
-| `lyra/metrics` | Runtime/system metrics |
-
-## Project Status
-
-Lyra is **actively being developed**.
-
-### Working foundations
-
-- Modular Python architecture
-- Central processing pipeline
-- Semantic intent routing
-- Parameter/feasibility validation
-- Policy and capability checks
-- Risk-aware execution gateway
-- Human-in-the-loop safety controls
-- Multi-step planning/orchestration foundations
-- Tool registry architecture
-- Session/context handling
-- Resource-aware heavy-model management
-- Technical architecture documentation
-
-### Still evolving
-
-- Broader real-world tool integrations
-- More reliable autonomous workflows
-- Voice interaction
-- Device/application control
-- Long-term memory behavior
-- Learning and personalization
-- More robust end-to-end testing
-- Resource optimization and stability on constrained hardware
-
-The project roadmap is intentionally iterative. A feature is not considered complete merely because a prototype works once; reliability, safety, resource usage and repeatability matter.
-
-## Running Lyra
-
-### Requirements
-
-- Python 3.10+
-- Windows, Linux or macOS
-- Sufficient RAM for the optional embedding/LLM components
-
-### Setup
-
-```bash
-git clone https://github.com/Balu-Annapureddy/Lyra-AI-Mark3.git
-cd Lyra-AI-Mark3
-
-python -m venv venv
-
-# Windows
-venv\\Scripts\\activate
-
-# Linux/macOS
-# source venv/bin/activate
-
-pip install -r requirements.txt
-```
-
-The main runtime entry point is currently:
-
-```bash
-python -m lyra.main
-```
-
-> **Note:** Lyra is still under active development. Some capabilities may require additional local configuration or may not yet be stable across machines. Do not treat the current repository as a production-ready autonomous agent.
-
-## Documentation
-
-- [Project Architecture](PROJECT_ARCHITECTURE.md)
-- [Documentation directory](documentation/)
-
-Additional documentation is being expanded alongside the implementation so that architectural decisions and system behavior remain understandable as Lyra grows.
-
-## Design Principles
-
-1. **Local-first** — prefer local execution where practical.
-2. **Permission-based automation** — actions should respect explicit capability boundaries.
-3. **Safe by default** — risky operations should be blocked or require confirmation.
-4. **Explainability** — important decisions and actions should be inspectable.
-5. **Modularity** — subsystems should remain independently replaceable and testable.
-6. **Resource awareness** — the assistant must account for the limitations of the machine it runs on.
-7. **Incremental development** — experimental capabilities are clearly separated from reliable foundations.
-
-## Roadmap Direction
-
-Future development is focused on making Lyra more reliable rather than simply adding more features:
-
-- strengthen end-to-end testing
-- improve resource management and startup behavior
-- expand safe tool integrations
-- improve memory and context handling
-- improve voice interaction
-- improve application/device control
-- strengthen observability and failure recovery
-- evaluate autonomous workflows under strict safety constraints
-
-## Why This Project Matters
-
-Lyra is my first large, long-running systems project and an ongoing exploration of **AI agents, software architecture, automation, safety engineering and local AI**. The project has gone through multiple architectural iterations, and this repository represents the current Mark 3 implementation rather than a claim of a finished assistant.
-
-## License
-
-No open-source license has been selected yet. Until one is added, the repository should be treated as **all rights reserved**.
+Lyra is a local-first personal AI operating system designed around semantic intent routing, safe automation, planning, context memory, and resource-aware model execution.
 
 ---
 
-**Lyra is a work in progress — built to learn how to engineer an AI system, not just how to call an AI model.**
+## Overview
+
+Most AI assistant projects stop at calling an LLM endpoint and streaming natural language text back to the user. **Lyra** addresses the harder systems engineering problem: **How can an AI assistant translate intent into explainable, controlled, and safe actions on local hardware without exhausting system memory?**
+
+Lyra implements an offline-first pipeline around the model rather than treating the LLM as the entire application. It integrates semantic routing, capability registration, policy engines, execution gateways, dry-run simulation, and multi-tier memory management.
+
+---
+
+## Why I Built It
+
+Lyra is my first large, long-running systems project. I built it to explore local AI execution, systems architecture, security policy enforcement, and autonomous agent orchestration. Developing Lyra on a resource-constrained hardware setup (8GB RAM) forced resource management, lazy model loading, and idle unloading to be designed as first-class architectural concerns.
+
+---
+
+## Architecture & Data Flow
+
+```mermaid
+flowchart TD
+    User([User Natural Language Input]) --> CLI[Interactive CLI / Entry Point]
+    CLI --> Pipeline[Lyra Execution Pipeline]
+    
+    subgraph Cognitive Layer
+        Pipeline --> IntentRouter[Embedding Intent Router]
+        Pipeline --> SemanticEngine[Local Semantic Engine]
+        Pipeline --> Escalation[LLM Escalation Advisor]
+    end
+
+    subgraph Governance & Safety
+        IntentRouter --> PolicyEngine[Policy Engine & Capability Registry]
+        PolicyEngine --> SafetyGate[Execution Gateway / Risk Scorer]
+        SafetyGate --> DryRun{Simulation Mode?}
+        DryRun -- Yes --> Sandbox[Sandbox Dry-Run Output]
+        DryRun -- No --> ExecutionPlanner[Execution Planner & Orchestrator]
+    end
+
+    subgraph Execution & Monitoring
+        ExecutionPlanner --> Tools[Controlled Tool Registry]
+        Tools --> Memory[Session & Behavioral Memory]
+        Tools --> Watchdog[Integrity Watchdog & Audit Ledger]
+    end
+```
+
+For comprehensive technical specifications, see [`PROJECT_ARCHITECTURE.md`](PROJECT_ARCHITECTURE.md) and [`documentation/`](documentation/).
+
+---
+
+## Key Features & Systems Design
+
+- **Local-First & Offline Intent Routing**: Uses `sentence-transformers` (`all-MiniLM-L6-v2`) and regex fallback rules for sub-millisecond intent extraction before attempting cloud escalation.
+- **Resource-Aware Heavy Model Management**: Implements a strict single-heavy-model constraint (`memory_guard_min_free_gb: 0.8`, `max_ram_usage_gb: 4.0`), lazy component loading, and automatic idle model unloading to preserve memory.
+- **Safety Policy & Capability Governance**: Enforces single-ownership intent mapping in `CapabilityRegistry`, pre-execution policy checks, risk scoring (`SAFE`, `LOW`, `MEDIUM`, `HIGH`, `CRITICAL`), and human confirmation gates.
+- **Dry-Run Simulation Gateway**: Supports simulated dry-run execution (`simulate <command>`) allowing users to preview planned side effects before granting permission.
+- **Autonomous Task Orchestration**: Decomposes complex multi-step goals into validated atomic steps managed by `ExecutionPlanner` and `TaskOrchestrator` with `RollbackManager` capabilities.
+
+---
+
+## Technical Stack
+
+| Domain | Technologies |
+|---|---|
+| **Core & Runtime** | Python 3.10+, PyYAML, `psutil` |
+| **Semantic & ML** | `sentence-transformers`, `numpy`, `scikit-learn` |
+| **Cloud Escalation & LLM** | Google Generative AI (`gemini-1.5-flash`), Ollama API (`qwen2.5:3b`) |
+| **Storage & Memory** | SQLite (`data/lyra_memory.db`), JSONL outcome logging |
+| **Testing & Quality** | Python `unittest`, `logging` module |
+
+---
+
+## Repository Structure
+
+```
+Lyra/
+├── config/
+│   └── default_config.yaml    # System configuration & RAM guard thresholds
+├── data/
+│   └── tool_registry.json     # Declarative tool definitions
+├── documentation/
+│   ├── architecture.md        # Technical architecture specs
+│   ├── design_decisions.md    # Architectural decision records (ADRs)
+│   └── task_roadmap.md        # System roadmap and task progress
+├── lyra/
+│   ├── capabilities/          # Capability mapping & permission definitions
+│   ├── cli/                   # Interactive CLI interface
+│   ├── context/               # Context normalization & clarification service
+│   ├── core/                  # Main execution pipeline & integrity watchdog
+│   ├── execution/             # Execution gateway, rollback, & permissions
+│   ├── llm/                   # Ollama & Gemini adapters, escalation router
+│   ├── memory/                # Session memory & context compression
+│   ├── orchestration/         # Autonomous task orchestrator
+│   ├── planning/              # Step decomposition & execution planner
+│   ├── policy/                # Policy engine & governance rules
+│   ├── reasoning/             # Intent detection & command schemas
+│   ├── safety/                # Risk scoring, simulation, & audit ledger
+│   ├── semantic/              # Intent router & local semantic engine
+│   └── tools/                 # Tool implementations (file, system, web)
+├── tests/
+│   └── test_pipeline.py       # Automated unit test suite
+├── requirements.txt           # Dependency requirements
+└── setup.py                   # Package setup & console scripts
+```
+
+---
+
+## Installation & Setup
+
+### Prerequisites
+- Python 3.10+
+- 8GB RAM minimum (4GB available for Lyra runtime)
+
+### Setup Virtual Environment
+
+```bash
+# Clone repository
+git clone https://github.com/Balu-Annapureddy/Lyra.git
+cd Lyra
+
+# Create virtual environment
+python -m venv .venv
+
+# Activate virtual environment
+# Windows (PowerShell):
+.\.venv\Scripts\Activate.ps1
+# Linux/macOS:
+# source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+pip install -e .
+```
+
+---
+
+## Usage
+
+Start the interactive CLI loop:
+
+```bash
+# Using installed console script
+lyra
+
+# Or directly via module entry point
+python -m lyra.main
+```
+
+### CLI Commands
+
+```text
+Commands:
+  - Type your command naturally (e.g. create file notes.txt with content "Meeting notes")
+  - Type 'simulate <command>' for dry-run simulation
+  - Type 'history' to view recent command history
+  - Type 'logs' to inspect execution audit logs
+  - Type 'metrics' to view runtime performance statistics
+  - Type 'help' for available command examples
+  - Type 'exit' to quit
+```
+
+---
+
+## Testing
+
+Run the automated unit test suite using Python's standard `unittest` framework:
+
+```bash
+.\.venv\Scripts\python.exe -m unittest discover tests
+```
+
+---
+
+## Current Limitations
+
+- **Experimental Subsystems**: Task orchestration and multi-step reasoning are currently experimental and actively under development.
+- **Resource Constraints**: High-capacity local LLMs (e.g. 7B+ models) are avoided on 8GB hardware in favor of lightweight 3B quantization or cloud escalation.
+- **Tool Sandbox Boundaries**: File operations and system calls run under process-level permission checks rather than full hypervisor containerization.
+
+---
+
+## Roadmap
+
+- [x] **Phase 1: Core Architecture & Safety** — Pipeline design, intent detection, capability registry, policy gate, dry-run simulation, unit testing.
+- [ ] **Phase 2: Advanced Context & Memory** — Deep context compression, proactive memory retrieval, behavioral adaptation.
+- [ ] **Phase 3: Robust Multi-Agent Orchestration** — Parallel subtask delegation with automated rollback verification.
+
+---
+
+## License
+
+This project is licensed under the MIT License — see `setup.py` for metadata details.

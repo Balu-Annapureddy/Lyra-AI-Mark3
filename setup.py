@@ -8,13 +8,13 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="lyra-ai",
-    version="0.1.0",
-    author="Your Name",
-    author_email="your.email@example.com",
+    version="0.3.0",
+    author="Balu Annapureddy",
+    author_email="balu.annapureddy@gmail.com",
     description="A local-first, modular personal AI operating system",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/Balu-Annapureddy/Lyra-AI-Mark3",
+    url="https://github.com/Balu-Annapureddy/Lyra",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -34,3 +34,4 @@ setup(
         ],
     },
 )
+
