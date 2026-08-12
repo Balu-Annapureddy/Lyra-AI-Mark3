@@ -1,8 +1,7 @@
 # Lyra — Local-First Personal AI Operating System
 
 > **Status**: 🟡 Active Development / Experimental  
-> **Target Identity**: Lyra  
-> **License**: MIT License  
+> **License**: MIT License ([LICENSE](LICENSE))  
 
 Lyra is a local-first personal AI operating system designed around semantic intent routing, safe automation, planning, context memory, and resource-aware model execution.
 
@@ -12,7 +11,7 @@ Lyra is a local-first personal AI operating system designed around semantic inte
 
 Most AI assistant projects stop at calling an LLM endpoint and streaming natural language text back to the user. **Lyra** addresses the harder systems engineering problem: **How can an AI assistant translate intent into explainable, controlled, and safe actions on local hardware without exhausting system memory?**
 
-Lyra implements an offline-first pipeline around the model rather than treating the LLM as the entire application. It integrates semantic routing, capability registration, policy engines, execution gateways, dry-run simulation, and multi-tier memory management.
+Lyra implements an offline-first pipeline around the model rather than treating the LLM as the entire application. It integrates intent classification, capability registration, policy engines, execution gateways, dry-run simulation, and multi-tier memory management.
 
 ---
 
@@ -56,11 +55,11 @@ For comprehensive technical specifications, see [`PROJECT_ARCHITECTURE.md`](PROJ
 
 ## Key Features & Systems Design
 
-- **Local-First & Offline Intent Routing**: Uses `sentence-transformers` (`all-MiniLM-L6-v2`) and regex fallback rules for sub-millisecond intent extraction before attempting cloud escalation.
-- **Resource-Aware Heavy Model Management**: Implements a strict single-heavy-model constraint (`memory_guard_min_free_gb: 0.8`, `max_ram_usage_gb: 4.0`), lazy component loading, and automatic idle model unloading to preserve memory.
+- **Local-First & Offline Intent Routing**: Combines lightweight regex/rule matching with an optional embedding-based intent router (`all-MiniLM-L6-v2`) for offline intent classification before attempting cloud escalation.
+- **Resource-Aware Heavy Model Management**: Implements explicit memory safeguards in `default_config.yaml` (`max_ram_usage_gb: 4.0`, `warn_threshold_gb: 0.8`, `memory_guard_min_free_gb: 0.8`), lazy component loading, and automatic idle model unloading.
 - **Safety Policy & Capability Governance**: Enforces single-ownership intent mapping in `CapabilityRegistry`, pre-execution policy checks, risk scoring (`SAFE`, `LOW`, `MEDIUM`, `HIGH`, `CRITICAL`), and human confirmation gates.
-- **Dry-Run Simulation Gateway**: Supports simulated dry-run execution (`simulate <command>`) allowing users to preview planned side effects before granting permission.
-- **Autonomous Task Orchestration**: Decomposes complex multi-step goals into validated atomic steps managed by `ExecutionPlanner` and `TaskOrchestrator` with `RollbackManager` capabilities.
+- **Dry-Run Simulation Gateway**: Supports simulated dry-run execution (`simulate <command>`) allowing users to preview planned side effects before granting execution permission.
+- **Autonomous Task Orchestration**: Decomposes multi-step goals into validated steps managed by `ExecutionPlanner` and `TaskOrchestrator` with `RollbackManager` integration.
 
 ---
 
@@ -69,17 +68,17 @@ For comprehensive technical specifications, see [`PROJECT_ARCHITECTURE.md`](PROJ
 | Domain | Technologies |
 |---|---|
 | **Core & Runtime** | Python 3.10+, PyYAML, `psutil` |
-| **Semantic & ML** | `sentence-transformers`, `numpy`, `scikit-learn` |
-| **Cloud Escalation & LLM** | Google Generative AI (`gemini-1.5-flash`), Ollama API (`qwen2.5:3b`) |
-| **Storage & Memory** | SQLite (`data/lyra_memory.db`), JSONL outcome logging |
-| **Testing & Quality** | Python `unittest`, `logging` module |
+| **Semantic & ML** | `sentence-transformers` (`all-MiniLM-L6-v2`), `numpy`, `scikit-learn` |
+| **LLM & Escalation** | Google Generative AI (`gemini-1.5-flash`), Ollama API (`qwen2.5:3b`) |
+| **Storage & Memory** | SQLite (`data/memory.db`, `data/behavioral_memory.db`), JSONL outcome logs |
+| **Testing & Quality** | Python standard `unittest` framework |
 
 ---
 
 ## Repository Structure
 
 ```
-Lyra/
+Lyra-AI-Mark3/
 ├── config/
 │   └── default_config.yaml    # System configuration & RAM guard thresholds
 ├── data/
@@ -104,7 +103,8 @@ Lyra/
 │   ├── semantic/              # Intent router & local semantic engine
 │   └── tools/                 # Tool implementations (file, system, web)
 ├── tests/
-│   └── test_pipeline.py       # Automated unit test suite
+│   └── test_pipeline.py       # Automated unit test suite (4 core tests)
+├── LICENSE                    # MIT License
 ├── requirements.txt           # Dependency requirements
 └── setup.py                   # Package setup & console scripts
 ```
@@ -115,14 +115,14 @@ Lyra/
 
 ### Prerequisites
 - Python 3.10+
-- 8GB RAM minimum (4GB available for Lyra runtime)
+- 8GB RAM system (configured to cap runtime usage at 4.0GB max)
 
 ### Setup Virtual Environment
 
 ```bash
 # Clone repository
-git clone https://github.com/Balu-Annapureddy/Lyra.git
-cd Lyra
+git clone https://github.com/Balu-Annapureddy/Lyra-AI-Mark3.git
+cd Lyra-AI-Mark3
 
 # Create virtual environment
 python -m venv .venv
@@ -169,7 +169,9 @@ Commands:
 
 ## Testing
 
-Run the automated unit test suite using Python's standard `unittest` framework:
+Automated tests are located in `tests/test_pipeline.py` (4 unit tests covering pipeline initialization, intent detection, dry-run simulation, and capability registry).
+
+Run the test suite using Python's built-in `unittest`:
 
 ```bash
 .\.venv\Scripts\python.exe -m unittest discover tests
@@ -177,11 +179,11 @@ Run the automated unit test suite using Python's standard `unittest` framework:
 
 ---
 
-## Current Limitations
+## Limitations
 
-- **Experimental Subsystems**: Task orchestration and multi-step reasoning are currently experimental and actively under development.
-- **Resource Constraints**: High-capacity local LLMs (e.g. 7B+ models) are avoided on 8GB hardware in favor of lightweight 3B quantization or cloud escalation.
-- **Tool Sandbox Boundaries**: File operations and system calls run under process-level permission checks rather than full hypervisor containerization.
+- **Experimental Subsystems**: Task orchestration and deep multi-step reasoning are under active development.
+- **Hardware Boundary**: Running local LLM inference via Ollama requires an external Ollama daemon; cloud escalation via Gemini API requires a `GEMINI_API_KEY`.
+- **Tool Sandbox**: File operations run with system permissions; destructive operations require user confirmation.
 
 ---
 
@@ -195,4 +197,4 @@ Run the automated unit test suite using Python's standard `unittest` framework:
 
 ## License
 
-This project is licensed under the MIT License — see `setup.py` for metadata details.
+This project is licensed under the MIT License — see the [`LICENSE`](LICENSE) file for details.
