@@ -2,7 +2,7 @@
 
 > **Status**: 🟡 Active Development / Experimental  
 > **Target Identity**: Lyra  
-> **Evolutionary Position**: [Mark 1 Prototype](https://github.com/Balu-Annapureddy/Lyra-Mark1-Archived) → [Mark 2 Predecessor](https://github.com/Balu-Annapureddy/Lyra-Mark2-Archived) → **Mark 3 (Active Flagship)**  
+> **Evolutionary Position**: [Mark 1 Prototype](https://github.com/Balu-Annapureddy/LyraMark1-Archived) → [Mark 2 Predecessor](https://github.com/Balu-Annapureddy/LyraMark2-Archived) → **Mark 3 (Active Flagship)**  
 > **License**: MIT License ([LICENSE](LICENSE))  
 
 Lyra is a local-first personal AI operating system designed around semantic intent routing, safe automation, planning, context memory, and resource-aware model execution.
@@ -15,9 +15,9 @@ Lyra has evolved through three distinct architectural generations:
 
 ```
 Lyra Architectural Evolution:
-├── Original Lyra (Mark 1 Prototype - Lyra-Mark1-Archived)
+├── Original Lyra (Mark 1 Prototype - LyraMark1-Archived)
 │   └── Early Desktop Voice/UI Assistant prototype (single-file scripts: main.py, tts_handler.py, ocr_tools.py)
-├── Lyra Mark 2 (Mark 2 Predecessor - Lyra-Mark2-Archived)
+├── Lyra Mark 2 (Mark 2 Predecessor - LyraMark2-Archived)
 │   └── Client-server architecture (Flask REST API backend, ai-worker task processor, React web UI)
 └── Lyra Mark 3 (This Repository - Active Flagship)
     └── Local-first Personal AI Operating System (Modular core engine in lyra/, Intent Router, Capability Registry, Policy Guardrails)
