@@ -140,8 +140,9 @@ Lyra-AI-Mark3/
 
 ```bash
 # Clone repository
-git clone https://github.com/Balu-Annapureddy/Lyra-AI-Mark3.git
-cd Lyra-AI-Mark3
+git clone https://github.com/Balu-Annapureddy/Lyra.git
+cd Lyra
+
 
 # Create virtual environment
 python -m venv .venv
