@@ -96,8 +96,9 @@ For comprehensive technical specifications, see [`PROJECT_ARCHITECTURE.md`](PROJ
 ## Repository Structure
 
 ```
-Lyra-AI-Mark3/
+Lyra/
 ├── config/
+
 │   └── default_config.yaml    # System configuration & RAM guard thresholds
 ├── data/
 │   └── tool_registry.json     # Declarative tool definitions
